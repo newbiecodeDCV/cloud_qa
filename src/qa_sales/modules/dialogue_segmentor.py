@@ -14,7 +14,7 @@ openai.api_key = api_key
 openai.base_url = base_url
 
 
-class DialogueProcessor:
+class DialogueSegmentor:
 
     def make_text_dialogue(self, dialogue: List[Dict[str, Any]]) -> str:
         text_dialogue = ""
