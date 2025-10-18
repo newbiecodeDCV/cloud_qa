@@ -3,9 +3,9 @@ import asyncio
 import sys
 from pathlib import Path
 
-from .utils import hash_str, create_task_id
-from .dialogue_utils import call_dialogue_api
-from .audio_analysis import extract_features
+from  utils import hash_str, create_task_id
+from dialogue_utils import call_dialogue_api
+from audio_analysis import extract_features
 
 
 def read_file_bytes(file_path: str) -> bytes:

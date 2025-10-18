@@ -1,0 +1,9 @@
+{
+    "chao_xung_danh": 0,
+    "ky_nang_noi": 0,
+    "ky_nang_nghe": 1,
+    "thai_do": 1,
+    "diem_tong": 1.2,
+    "muc_loi": "M1",
+    "ly_do": "- Chào/xưng danh có đủ tên và công ty trong 2 segment đầu nhưng giọng nói không tích cực, pitch_stddev thấp (dựa vào pitch_hz biến động thấp trong 2 segment đầu).\n- Tốc độ nói quá nhanh (speed_spm > 180) và âm lượng nhỏ (volume_db < -10 dB) trong nhiều segment của Sales.\n- Nhiều disfluency_count (từ ngập ngừng như 'à', 'ờ' xuất hiện nhiều trong câu nói).\n- Câu từ dài, nhiều từ đệm, thiếu sự trôi chảy và rõ ràng.\n- Không phát hiện thái độ cộc lốc, mỉa mai hay thiếu lịch sự, politeness_count > 0 và pitch_stddev đủ cao ở các segment sau.\n- Sales thể hiện sự đồng cảm, lắng nghe và xử lý thông tin khách hàng tốt, có hỏi thăm và giải thích chi tiết.\n- Không có dấu hiệu bỏ qua phàn nàn hay không xử lý thông tin khách hàng."
+}

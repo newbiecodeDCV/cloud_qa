@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).parent.resolve()))
 
 try:
     from src.utils.audio_analysis import extract_features
-    from src.utils.llm_service import get_qa_evaluation
+    from src.llm_service import get_qa_evaluation
 except ImportError as e:
     print(f"Lỗi Import: {e}")
     print("Hãy chắc chắn rằng bạn đang chạy script này từ thư mục gốc của dự án.")
@@ -60,6 +60,7 @@ async def main():
             'metadata': analysis_result.get('metadata'),
             'segments': analysis_result.get('segments')
         }
+        
         evaluation_result = await get_qa_evaluation(data_for_llm)
 
         # 4. In và LƯU kết quả cuối cùng

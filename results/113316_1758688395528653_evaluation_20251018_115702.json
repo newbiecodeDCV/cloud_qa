@@ -1,0 +1,9 @@
+{
+    "chao_xung_danh": 1,
+    "ky_nang_noi": 0,
+    "ky_nang_nghe": 1,
+    "thai_do": 1,
+    "diem_tong": 1.6,
+    "muc_loi": "M1",
+    "ly_do": "- Chào/xưng danh đầy đủ trong 2 segment đầu: Sales giới thiệu tên và công ty rõ ràng.\n- Tốc độ nói của Sales thường xuyên vượt ngưỡng lý tưởng (nhiều segment > 180 speed_spm, ví dụ segment 1: 232.98, segment 3: 249.13, segment 5: 250.93).\n- Âm lượng nói nhỏ (volume_db thường dưới -10 dB, ví dụ segment 1: -12.49 dB, segment 3: -13.51 dB).\n- Không có số liệu disfluency_count cụ thể nhưng văn phong có nhiều câu dài, có dấu hiệu nói nhanh, có thể gây khó hiểu.\n- Ngữ điệu khá linh hoạt (pitch_stddev cao, nhiều segment pitch_hz > 200 Hz) và có từ lễ phép (dạ, ạ) nên thái độ giao tiếp đạt.\n- Sales thể hiện sự đồng cảm, lắng nghe và xử lý tốt thông tin khách hàng, có hỏi thăm và phản hồi phù hợp.\n- Mức lỗi M1 do nói nhanh, nói nhỏ, thiếu trôi chảy, có thể gây khó nghe hoặc thiếu nhiệt tình."
+}

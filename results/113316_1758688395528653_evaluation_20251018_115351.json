@@ -1,0 +1,9 @@
+{
+    "chao_xung_danh": 1,
+    "ky_nang_noi": 0,
+    "ky_nang_nghe": 1,
+    "thai_do": 1,
+    "diem_tong": 1.4,
+    "muc_loi": "M1",
+    "ly_do": "- Chào và xưng danh đầy đủ trong 1-2 segment đầu: Sales giới thiệu tên và công ty rõ ràng.\n- Tốc độ nói của Sales thường xuyên vượt mức lý tưởng (nhiều segment > 180 speed_spm, ví dụ segment đầu 232.98, segment 3 249.13, nhiều segment khác cũng cao).\n- Âm lượng nói nhỏ (volume_db thường dưới -10 dB, ví dụ segment đầu -12.49 dB, segment 3 -13.51 dB).\n- Có nhiều ngập ngừng, vấp (dựa trên text có nhiều từ đệm như 'à', 'ờ', 'dạ', 'vâng' lặp lại nhiều lần).\n- Giọng nói đều đều, thiếu linh hoạt (pitch_stddev không cao, không có dấu hiệu ngữ điệu linh hoạt rõ ràng).\n- Câu từ dài dòng, nhiều đoạn thiếu chủ ngữ, vị ngữ rõ ràng, câu văn hơi rối, có phần ngôn từ bình dân, thiếu sự mạch lạc.\n- Không có dấu hiệu thái độ cộc lốc, mỉa mai hay thiếu lịch sự.\n- Sales thể hiện sự đồng cảm, lắng nghe và xử lý thông tin khách hàng tốt.\n- Sales dùng nhiều từ lễ phép (dạ, ạ) trong suốt cuộc gọi."
+}
