@@ -30,51 +30,56 @@ def build_prompt(call_data: dict) -> str:
 
     prompt_template = f"""
 # NHIỆM VỤ
-Phân tích kỹ năng giao tiếp trong cuộc gọi bán hàng dựa trên dữ liệu âm học và transcript.
-Điểm tối đa: 2.0 (20% tổng điểm).
+Phân tích cuộc gọi sales dựa trên transcript và acoustic features, sau đó đánh giá kỹ năng giao tiếp theo các tiêu chí đánh giá 
+và tính điểm tổng theo công thức quy định.
 
-# TIÊU CHÍ ĐÁNH GIÁ & DỮ LIỆU THAM CHIẾU
+# TIÊU CHÍ ĐÁNH GIÁ 
 
-[
-  {{
-    "tieu_chi": "1. Chào/Xưng danh",
-    "trong_so": 0.1,
-    "tieu_chuan_dat": "Xưng danh đầy đủ (tên + công ty) trong 1-2 segment đầu.",
-    "tieu_chuan_truot": "Không xưng danh, xưng danh sai/thiếu, .",
-    "du_lieu_tham_chieu": "segments[0:2] của Sales: text, 
-  }},
-  {{
-    "tieu_chi": "2. Kỹ năng nói",
-    "trong_so": 0.1,
-    "tieu_chuan_dat": "Tốc độ nói lý tưởng (speed_spm 120-180), rõ ràng (volume_db > -50dB), trôi chảy (disfluency_count thấp).",
-    "tieu_chuan_truot": "Nói quá nhanh (>180) / chậm (<120), nói nhỏ, ngập ngừng, vấp (disfluency_count cao).",
-    "du_lieu_tham_chieu": "Các segment của Sales: speed_spm, volume_db, disfluency_count"
-  }},
-  {{
-    "tieu_chi": "3. Kỹ năng nghe & Xử lý",
-    "trong_so": 0.4,
-    "tieu_chuan_dat": " Tập trung thể hiện sự đồng cảm,lắng nghe những thông tin khách hàng chia sẻ,vấn an cảm thông với khách hàng chưa hài lòng",
-    "tieu_chuan_truot": " bỏ qua thông tin/phàn nàn của KH, không có từ trấn an hay vấn an khi khách hàng không hài lòng.",
-    "du_lieu_tham_chieu": " text "
-  }},
-  {{
-    "tieu_chi": "4. Thái độ giao tiếp",
-    "trong_so": 0.4,
-    "tieu_chuan_dat": "Thân thiện, tôn trọng. Ngữ điệu linh hoạt (pitch_stddev > 20Hz), dùng nhiều từ lễ phép (politeness_count > 0).",
-    "tieu_chuan_truot": "Cộc lốc, mỉa mai, thiếu lịch sự. Giọng cao bất thường, đều đều (pitch_stddev thấp), không có từ lễ phép (politeness_count = 0).",
-    "du_lieu_tham_chieu": "Các segment của Sales: pitch_stddev, politeness_count, text (tìm từ tiêu cực)"
-  }}
-]
-Lưu ý quan trọng:
-    speed_spm là Số Tiếng (Syllables) trên phút, đã được lọc từ đệm.
-    pitch_stddev là Độ lệch chuẩn của cao độ, đo lường ngữ điệu/cảm xúc.
-    politeness_count và disfluency_count là số lượng từ lễ phép (dạ, ạ) và từ ngập ngừng (à, ờ).
+## TIÊU CHÍ 1 : CHÀO/XƯNG DANH
+### TIÊU CHUẨN ĐẠT
+-Có xưng danh trong 1,2 segment đầu tiên
+### TIÊU CHUẨN KHÔNG ĐẠT 
+-Không xưng danh
+-Xưng danh nhưng khách hàng không nghe được và hỏi lại
+
+## TIÊU CHÍ 2 : KỸ NĂNG NÓI
+### TIÊU CHUẨN ĐẠT 
+-Giọng nói rõ ràng, âm lượng và cường độ vừa phải (<250 SPM nếu có một vài segment thì đánh giá xem có phù hợp với ngữ cảnh không)
+### TIÊU CHUẨN KHÔNG ĐẠT
+-Nói quá nhanh khiến khách hàng nghe không rõ,yêu cầu nhắc lại
+-Nói quá nhỏ hoặc quá to 
+-Cách diễn đạt không trôi chảy
+
+## TIÊU CHÍ 3 : KĨ NĂNG NGHE,TRẤN AN
+### TIÊU CHUẨN ĐẠT
+-Tập trung thể hiện sự đồng cảm,lắng nghe những thông tin khách hàng chia sẻ ( tập trung vào text)
+-Vấn an, cảm thông với những khách hàng đang chưa hài lòng
+### TIÊU CHUẨN KHÔNG ĐẠT
+-Khách hàng chia sẻ nhưng sale không thể hiện sự đồng cảm cùng,thông tin chia sẻ bị bỏ quên,không hào hứng tham gia
+-Các vấn đề lỗi và tạo sự trải nghiệm chưa hài lòng từ khách hàng,sale chưa thể hiện sự trấn an
+
+## TIÊU CHÍ 4 : THÁI ĐỘ GIAO TIẾP 
+### TIÊU CHUẨN ĐẠT
+-Ngôn ngữ giao tiếp chuẩn mực,thể hiện sự tôn trọng với khách hàng
+-Giải quyết triệt để vấn đề của khách hàng đứng trên quan điểm người sử dụng dịch vụ
+### TIÊU CHUẨN KHÔNG ĐẠT
+- Có thái độ,ngữ điệu trong cuộc gọi không vui vẻ nhiệt tình
+-Ngôn từ thiếu chuẩn mực,chưa thể hiện sự tôn trọng với khách hàng 
+
     
 # CÁCH TÍNH ĐIỂM
 1.Đánh giá nhị phân: Với mỗi tiêu chí, gán giá trị 1 (Đạt) hoặc 0 (Trượt) vào các biến: chao_xung_danh, ky_nang_noi, ky_nang_nghe, thai_do.
 
 ## QUAN TRỌNG : PHẢI ÁP DỤNG CÔNG THỨC TÍNH ĐIỂM TỔNG KHÔNG ĐƯỢC PHÉP SAI 
+
 diem_tong = ((chao_xung_danh * 0.1) + (ky_nang_noi * 0.1) + (ky_nang_nghe * 0.4) + (thai_do * 0.4)) * 2.0
+Ví dụ :{{"chao_xung_danh":1,
+         "ky_nang_noi":0,
+         "ky_nang_nghe":1,
+         "thai_do":1,
+         "diem_tong":(1*0.1+0*0.1+0.4*1+0.4*1)*2.0=(0.1+0.4+0.4)*2.0=0.9*2.0=2.8
+ }}
+ 
 
 
 
@@ -92,17 +97,18 @@ M3: Khai thác lại thông tin lần 2, kết thúc cuộc gọi vẫn không p
 ```json
 {call_data_str}
 ```
-
+# YÊU CẦU
+Hãy nghĩ từng bước trước khi đưa ra đánh giá từng tiêu chí
 # OUTPUT FORMAT
 ```json
 {{
-  "diem_tong": <float: 0-2.0>,
+  "diem_tong": <float: 0-2.0 , theo đúng cách tính điểm tổng >,
   "chao_xung_danh": <int: 0/1>,
   "ky_nang_noi": <int: 0/1>,
   "ky_nang_nghe": <int: 0/1>,
   "thai_do": <int: 0/1>,
   "muc_loi": <string: "Không"|"M1"|"M2"|"M3">,
-  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng>
+  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng , trích dẫn rõ nội dung segment ứng với các tiêu chí tương ứng   và đưa ra cách tính điểm tổng như thế nào>
 }}
 ```
 """
@@ -136,7 +142,7 @@ async def get_qa_evaluation(call_data: dict) -> dict:
                     "content": prompt
                 }
             ],
-            temperature=0.1,
+            temperature=0,
             response_format={"type": "json_object"}
         )
 
