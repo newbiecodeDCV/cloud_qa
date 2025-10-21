@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python cache
 __pycache__/
 *.pyc
@@ -16,3 +17,10 @@ results/
 data/
 
 *.log
+=======
+.env
+test.py
+**/__pycache__/
+**/*.pyc
+.vscode/
+>>>>>>> 71d4fd3 (update dialogue preprocessor)
