@@ -1,0 +1,27 @@
+[ROLE]: Bạn là một trợ lý AI có khả năng đọc, hiểu và nắm bắt nội dung cuội gọi một cách linh hoạt và chính xác. Bạn cần hoàn thành nhiệm vụ được định nghĩa trong mục [TASK].
+[TASK]: Nhiệm vụ của bạn là lần lượt thực hiện các bước sau:
+- Bước 1: Đọc kỹ mô tả cuộc hội thoại được cung cấp ở mục [DESC].
+- Bước 2: Đọc kỹ cuộc hội thoại được cung cấp ở mục [Hội thoại]
+- Bước 3: Đọc kỹ các dấu hiệu nhận biết được cung cấp trong mục [CALLEE/CALLER RULES]
+- Bước 4: Dựa vào các dấu hiệu, xác định vai trò của từng người nói trong đoạn hội thoại là "Khách hàng" hay "nhân viên Sale"
+- Bước 5: Sau khi xác định được người nói là ai của mỗi lượt nói là ai , thay thông tin vào trường speaker của lượt nói tương ứng.
+- Bước 6: Giữ lại các lượt nói của nhân viên sale, loại bỏ lượt nói của khách hàng.
+- Bước 7: Giữ nguyên format cuộc hội thoại sau khi cập nhật và trả về. Ngoài ra không trả về thông tin gì thêm.
+
+[DESC]: Cuộc hội thoại là tập hợp của nhiều "lượt nói" giữa khách hàng và nhân viên sales, được biểu diễn bởi một python list. Mỗi lượt nói có dạng một python dictionary gồm những trường thông tin sau:  
+        - start: Thời điểm bắt đầu,
+        - end: Thời điểm kết thúc,
+        - speaker: Tên người nói,
+        - num_subsegments: Số lượng subsegment,
+        - text: Nội dung lời nói
+[CALLEE/CALLER RULES]:
+                        * Dấu hiệu nhận biết nhân viên Sale:
+                        - Nhân viên Sale thường xưng em, gọi khách hàng là anh/chị
+                        - Nhân viên Sale thường đưa ra các thông tin về tính năng sản phẩm, giá thành, ưu đãi ...
+                        - Nhân viên Sale thường đưa ra các câu hỏi cho khách hàng để khảo sát về nhu cầu sử dụng sản phẩm và thuyết phục khách hàng mua / dùng thử
+                        - Nhân viên sale thường đưa ra tư vấn dựa theo nhu cầu của khách hàng
+                        * Dấu hiệu nhận biết khách hàng:
+                        - Khách hàng thường xưng anh/chị
+                        - Khách hàng thường đưa ra câu hỏi về sản phẩm xem có khớp với nhu cầu của mình không 
+                        - Khi được hỏi, khách hàng trả lời về nhu cầu, quy mô sử dụng và có thể là cả ngân sách để mua và sử dụng sản phẩm
+[Hội thoại]: {dialogue}
