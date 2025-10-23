@@ -44,11 +44,12 @@ và tính điểm tổng theo công thức quy định.
 
 ## TIÊU CHÍ 2 : KỸ NĂNG NÓI
 ### TIÊU CHUẨN ĐẠT 
--Giọng nói rõ ràng, âm lượng và cường độ vừa phải (Tốc độ nói < 250 SPM nếu có vài đoạn có SPM lớn hơn thì hãy dựa vào ngữ cảnh dưới góc nhìn của QA)
+-Giọng nói rõ ràng, âm lượng và cường độ vừa phải (Tốc độ nói < 220 SPM nếu có vài đoạn có SPM lớn hơn thì hãy DỰA VÀO NGỮ CẢNH CHỨ ĐỪNG VỘI ĐÁNH GIÁ)
 ### TIÊU CHUẨN KHÔNG ĐẠT
 -Nói quá nhanh khiến khách hàng nghe không rõ
 -Nói quá nhỏ hoặc quá to 
--Cách diễn đạt không trôi chảy
+-Cách diễn đạt không trôi chảy, ngập ngừng nhiều,NÓI KHÔNG LƯU LOÁT
+-GIỌNG NÓI ĐỀU ĐỀU,KHÔNG TẠO ĐIỂM NHẤN 
 
 ## TIÊU CHÍ 3 : KĨ NĂNG NGHE,TRẤN AN
 ### TIÊU CHUẨN ĐẠT
