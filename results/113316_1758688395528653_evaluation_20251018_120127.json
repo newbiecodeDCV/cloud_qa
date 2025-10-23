@@ -1,9 +1,0 @@
-{
-    "chao_xung_danh": 0,
-    "ky_nang_noi": 0,
-    "ky_nang_nghe": 1,
-    "thai_do": 1,
-    "diem_tong": 1.2,
-    "muc_loi": "M1",
-    "ly_do": "- Chào/xưng danh không đầy đủ trong 1-2 segment đầu: Sales xưng danh là \"giang\" nhưng không nêu rõ họ tên đầy đủ, chỉ nói \"em là giang liên hệ với anh ở bên bizfly cloud thuộc công ty vccorp ạ\"; tuy có xưng danh công ty nhưng tên cá nhân thiếu rõ ràng.\n- Tốc độ nói quá nhanh, nhiều segment speed_spm > 180, ví dụ segment đầu của Sales speed_spm=232.98, nhiều đoạn khác cũng cao trên 200.\n- Âm lượng nói nhỏ, volume_db nhiều đoạn dưới -10 dB, ví dụ segment đầu Sales volume_db=-12.49 dB.\n- Có nhiều từ ngập ngừng (disfluency_count không trực tiếp cho nhưng từ transcript có nhiều \"à\", \"ờ\", \"dạ\" lặp lại, thể hiện không trôi chảy).\n- Giọng nói có pitch_stddev cao (trên 20Hz), thể hiện ngữ điệu linh hoạt.\n- Từ ngữ lịch sự, có nhiều từ lễ phép như \"dạ\", \"ạ\".\n- Không có dấu hiệu thái độ cộc lốc, mỉa mai hay thiếu tôn trọng.\n- Kỹ năng nghe và xử lý tốt, thể hiện sự đồng cảm, hỏi thăm và xử lý thông tin khách hàng chia sẻ.\n- Mức lỗi M1 phù hợp do có đủ thông tin chào/xưng danh nhưng thiếu trôi chảy, nói nhanh, nói nhỏ."
-}

@@ -2,9 +2,10 @@ import numpy as np
 import librosa
 import re  
 from typing import List, Dict
-from .dialogue_utils import call_dialogue_api
-from .utils import create_task_id
+from dialogue_utils import call_dialogue_api
+from utils import create_task_id
 from io import BytesIO
+from underthesea import word_tokenize
 
 # Ngưỡng để xác định một segment có thể bị lỗi từ API
 MIN_DURATION_FOR_VALID_SEGMENT = 0.25
@@ -36,15 +37,17 @@ class AcousticAnalyzer:
     # THÊM MỚI: Danh sách các từ đệm, ngập ngừng, lễ phép... 
     # cần lọc bỏ khi tính tốc độ nội dung
     FILLER_WORDS = {
-        'à', 'ờ', 'ừ', 'ừm', 'hừm',  # Từ ngập ngừng
-        'dạ', 'ạ', 'vâng', 'thưa',   # Từ lễ phép (làm tăng số "tiếng" nhưng không phải nội dung)
-        'thì', 'là', 'mà', 'rằng'      # Từ đệm phổ biến
-    }
+    'à', 'ạ', 'dạ', 'vâng', 'ừ', 'ừm', 'ờ', 'ơi', 'ấy', 'nhá', 'nha',
+    'hả', 'hử', 'ư', 'ê', 'ơ', 'chứ', 'thì', 'là', 'kiểu', 'dạng',
+    'đấy', 'nhỉ', 'nhé', 'vậy', 'nên', 'rồi', 'cái', 'ấy là', 'với',
+    'mình', 'bên', 'em', 'chị', 'anh', 'luôn', 'luôn ạ', 'dạ vâng'
+}
     
     def __init__(self, audio_data: np.ndarray, sample_rate: int, non_silent_intervals: np.ndarray):
         self.audio_data = audio_data
         self.sample_rate = sample_rate
         self.non_silent_intervals = non_silent_intervals
+        
         
     def analyze_segment(self, segment: AudioSegment) -> Dict:
         """Phân tích acoustic features cho một segment"""
@@ -68,32 +71,47 @@ class AcousticAnalyzer:
             'silence_ratio': float(silence_ratio)
         }
     
+
+
     def _calculate_spm(self, segment: AudioSegment) -> float:
         """
-        TỐI ƯU: Tính tốc độ nói (Syllables Per Minute - SPM) đã lọc từ đệm.
-        Đây là tốc độ truyền tải nội dung thực tế.
+        Tính tốc độ nói thực tế (Syllables Per Minute - SPM) sau khi:
+        - Loại bỏ dấu câu
+        - Loại bỏ filler words (từ đệm)
+        - Loại bỏ từ có độ dài <= 1 ký tự (thường là nhiễu ASR: 'a', 'ư', 'ơ'...)
+        
+        Đây là tốc độ truyền tải nội dung thực tế, phù hợp cho đánh giá giao tiếp.
         """
-        if segment.duration <= 0.2:
+        # 1. Kiểm tra thời lượng hợp lệ
+        if segment.duration <= 0.3:
             return 0.0
 
         text = segment.text
-        if not text:
+        if not text or not text.strip():
             return 0.0
 
-        # 1. Tách "tiếng" (syllables/words) bằng regex
-        all_syllables = re.findall(r'\b\w+\b', text.lower())
-        
-        # 2. Đếm "tiếng" chứa nội dung (lọc bỏ filler words)
-        content_syllable_count = 0
-        for syllable in all_syllables:
-            if syllable not in self.FILLER_WORDS:
-                content_syllable_count += 1
-                
-        # 3. Tính SPM dựa trên số "tiếng" có nội dung
-        if content_syllable_count > 0:
-            spm = (content_syllable_count / segment.duration) * 60
-            return spm
-            
+        # 2. Chuẩn hóa: lowercase + giữ chữ, số, khoảng trắng
+        cleaned = re.sub(r'[^\w\s]', ' ', text.lower())
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        if not cleaned:
+            return 0.0
+
+        # 3. Tách từ (mỗi từ ≈ 1 âm tiết trong tiếng Việt)
+        # DÙNG split() thay vì word_tokenize(...).split() — đủ tốt & nhanh hơn
+        syllables: List[str] = cleaned.split()
+
+        # 4. Lọc: loại bỏ filler và từ quá ngắn (len <= 1)
+        content_syllables = [
+            s for s in syllables
+            if len(s) > 1 and s not in self.FILLER_WORDS
+        ]
+
+        # 5. Tính SPM nếu có nội dung
+        if content_syllables:
+            spm = (len(content_syllables) / segment.duration) * 60.0
+            return round(spm, 2)
+
         return 0.0
     
     def _calculate_volume(self, segment: AudioSegment) -> float:
@@ -238,7 +256,7 @@ class AudioFeatureExtractor:
             sales_speaker_id = max(speaker_durations, key=speaker_durations.get)
             return sales_speaker_id
         
-        # Fallback: người nói đầu tiên
+        
         return str(dialogue_segments[0].get('speaker', 'unknown'))
         
     async def extract(self) -> Dict:
