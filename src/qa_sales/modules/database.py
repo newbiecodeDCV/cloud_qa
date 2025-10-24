@@ -24,8 +24,8 @@ def create_csvdatabase(csv_path: str,
     if not os.path.exists(db_path):
         logger.info("Creating new Chroma database...")
         loader = CSVLoader(file_path=csv_path,
-                           content_columns=['step_description'],
-                           metadata_columns=['step_id', 'step_name', 'step_criteria'])
+                           content_columns=['criteria_description'],
+                           metadata_columns=['criteria_id', 'criteria_name', 'criteria_actions'])
         documents = loader.load()
         chroma_db = Chroma.from_documents(documents=documents,
                                           embedding=embeddings,
@@ -39,22 +39,22 @@ def create_csvdatabase(csv_path: str,
                            persist_directory=db_path)
 
 
-def classify_utterances_to_steps(utterances: List[Dict[str, Any]],
-                                 chroma_db: Chroma,
-                                 top_k: int = 3) -> List[Dict[str, Any]]:
+def classify_utterances_to_criteria(utterances: List[Dict[str, Any]],
+                                    chroma_db: Chroma,
+                                    top_k: int = 3) -> List[Dict[str, Any]]:
 
-    step_texts = {}
+    criteria_texts = {}
     for utterance in utterances:
         query = utterance['text']
-        nearest_step = chroma_db.similarity_search(query, k=top_k)[0]
-        nearest_step_id = nearest_step.metadata['step_id']
-        if nearest_step_id not in step_texts:
-            step_texts[nearest_step_id] = [query]
+        nearest_criteria = chroma_db.similarity_search(query, k=top_k)[0]
+        nearest_criteria_id = nearest_criteria.metadata['criteria_id']
+        if nearest_criteria_id not in criteria_texts:
+            criteria_texts[nearest_criteria_id] = [query]
         else:
-            step_texts[nearest_step_id].append(query)
+            criteria_texts[nearest_criteria_id].append(query)
     result = ""
-    for step_id, texts in step_texts.items():
-        result += f"step ID: {step_id}\n"
+    for criteria_id, texts in criteria_texts.items():
+        result += f"criteria ID: {criteria_id}\n"
         for text in texts:
             result += f"- {text}\n"
         result += "\n"
@@ -65,8 +65,8 @@ def from_db_to_text(chroma_db: Chroma) -> str:
     result = ""
     all_metadatas = chroma_db.get(include=["metadatas"])
     for metadata in all_metadatas['metadatas']:
-        step_id = metadata['step_id']
-        step_name = metadata['step_name']
-        step_criteria = metadata['step_criteria']
-        result += f"step ID: {step_id}\nstep Name: {step_name}\n step Criteria: {step_criteria}\n\n"
+        criteria_id = metadata['criteria_id']
+        criteria_name = metadata['criteria_name']
+        criteria_actions = metadata['criteria_actions']
+        result += f"criteria ID: {criteria_id}\ncriteria Name: {criteria_name}\ncriteria Actions: {criteria_actions}\n\n"
     return result

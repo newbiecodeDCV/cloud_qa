@@ -6,10 +6,10 @@ import os
 load_dotenv()
 
 
-class DialogueEvaluator:
+class ScriptEvaluator:
     def __init__(self,
                  model: str = "gpt-4.1-mini",
-                 prompt_template: str = "prompt_templates/evaluate_dialogue.txt"):
+                 prompt_template: str = "prompt_templates/evaluate_script.txt"):
         self.llm = ChatOpenAI(model=model,
                               temperature=0.0,
                               api_key=os.getenv("OPENAI_API_KEY"),
@@ -17,12 +17,14 @@ class DialogueEvaluator:
         prompt = open(prompt_template).read()
         self.prompt = PromptTemplate.from_template(prompt)
 
-    def __call__(self, step_texts: str,
-                 step_criteria: str) -> str:
+    def __call__(self, sale_texts: str,
+                 step_detail: str) -> str:
         chain = self.prompt | self.llm
         response = chain.invoke({
-            "step_texts": step_texts,
-            "step_criteria": step_criteria
+            "sale_texts": sale_texts,
+            "step_detail": step_detail
         })
         return response.content
+
+
 
