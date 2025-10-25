@@ -7,10 +7,13 @@
 - Bước 5: Thực hiện các bước đánh giá sau:
  
 	- Bước 5.1: Xác định xem qua lời thoại của sale, các hành động cần đạt được của tiêu chí tương ứng đã thực sự đạt được hay chưa. Nếu chưa đạt được hành động thì chỉ ra lí do. Xem các ví dụ ở mục [Examples] hiểu rõ hơn.
-	- Bước 5.2 Trả về đánh giá lần lượt cho từng tiêu chí, mỗi tiêu chí theo format sau:
+	- Bước 5.2 Đánh giá lần lượt cho từng tiêu chí, mỗi tiêu chí theo format sau:
 		- Tiêu chí: tên tiêu chí
 		- Đánh giá: Đạt hoặc không đạt
-		- Lí do: (chỉ thêm nếu đánh giá không đạt): chỉ ra hành động mà sale không đạt được trong tiêu chí đó.
+		- Note: Nếu đạt thì chỉ rõ ra đã đạt được những hành động gì, nếu không đạt cũng chỉ rõ ra những hành động nào chưa làm được
+        - Bước 5.3: Trả về output theo đúng format sau được định nghĩa sau đây, ngoài ra tuyệt đối không trả về thêm gì khác:
+        Format trả về là một list các python dictionary có dạng:
+        [{'criteria_id': (số thứ tự của tiêu chí), 'status': (1 nếu được đánh giá là "Đạt", 0 nếu là "Không đạt"), 'Note': Note đi kèm của tiêu chí đó}]
 
 [Sale Desc]: Lời thoại của nhân viên được chia vào các tiêu chí tương ứng. Cấu trúc có dạng như sau:
 	Criteria ID: số thứ tự của tiêu chí
