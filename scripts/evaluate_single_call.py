@@ -10,15 +10,29 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
+<<<<<<< HEAD
     from src.qa_communicate.audio_processing.analysis import extract_features
     from src.qa_communicate.evaluation.evaluator import get_qa_evaluation
+=======
+<<<<<<<< HEAD:run_real_test.py
+    from src.utils.audio_analysis import extract_features
+    from src.utils.llm_service import get_qa_evaluation
+========
+    from src.audio_processing.analysis import extract_features
+    from src.evaluation.evaluator import get_qa_evaluation
+>>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.):scripts/evaluate_single_call.py
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.)
 except ImportError as e:
     print(f"Lỗi Import: {e}")
     print("Hãy chắc chắn rằng bạn đang chạy script này từ thư mục gốc của dự án.")
     sys.exit(1)
 
 # Tạo thư mục 'results' nếu chưa tồn tại
+<<<<<<< HEAD
 RESULTS_DIR = Path(__file__).parent.parent / "results" / "score"
+=======
+RESULTS_DIR = Path(__file__).parent / "results" / "score"
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
@@ -61,7 +75,14 @@ async def main():
             'metadata': analysis_result.get('metadata'),
             'segments': analysis_result.get('segments')
         }
+<<<<<<< HEAD
       
+=======
+<<<<<<<< HEAD:run_real_test.py
+========
+      
+>>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.):scripts/evaluate_single_call.py
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.)
         evaluation_result = await get_qa_evaluation(data_for_llm)
 
         # 4. In và LƯU kết quả cuối cùng

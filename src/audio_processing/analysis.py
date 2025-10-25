@@ -1,8 +1,15 @@
 import numpy as np
 import librosa
+<<<<<<< HEAD:src/utils/audio_analysis.py
 from typing import List, Dict
 from .dialogue_utils import call_dialogue_api
 from .utils import create_task_id
+=======
+import re
+from typing import List, Dict , Tuple 
+from .dialogue import call_dialogue_api
+from src.core.utils import create_task_id
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.):src/audio_processing/analysis.py
 from io import BytesIO
 
 # Ngưỡng để xác định một segment có thể bị lỗi từ API
@@ -33,6 +40,22 @@ async def extract_features(audio_bytes: bytes) -> Dict:
         duration = end_time - start_time
         word_count = len(text.split()) if text else 0
 
+<<<<<<< HEAD:src/utils/audio_analysis.py
+=======
+class AcousticAnalyzer:
+    """Phân tích các đặc điểm acoustic của segment"""
+    FILLER_WORDS = {
+    'à', 'ạ', 'dạ', 'vâng', 'ừ', 'ừm', 'ờ', 'ơi', 'ấy', 'nhá', 'nha',
+    'hả', 'hử', 'ư', 'ê', 'ơ', 'chứ', 'thì', 'là', 'kiểu', 'dạng',
+    'đấy', 'nhỉ', 'nhé', 'vậy', 'nên', 'rồi', 'cái', 'ấy là', 'với',
+    'mình', 'bên', 'em', 'chị', 'anh', 'luôn', 'luôn ạ', 'dạ vâng', 'vầng'
+}
+    
+    def __init__(self, audio_data: np.ndarray, sample_rate: int, non_silent_intervals: List[Tuple[int, int]]):
+        self.audio_data = audio_data
+        self.sample_rate = sample_rate
+        self.non_silent_intervals = non_silent_intervals
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.):src/audio_processing/analysis.py
         
         is_corrupted_segment = (duration < MIN_DURATION_FOR_VALID_SEGMENT and word_count > MAX_WORDS_IN_SHORT_SEGMENT)
 

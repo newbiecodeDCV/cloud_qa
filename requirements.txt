@@ -87,5 +87,8 @@ underthesea_core==1.0.5
 urllib3==2.5.0
 uvicorn==0.38.0
 websockets==15.0.1
+<<<<<<< HEAD
 sqlalchemy==2.0.23
 alembic==1.13.1
+=======
+>>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.)
