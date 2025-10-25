@@ -2,8 +2,8 @@ import numpy as np
 import librosa
 import re
 from typing import List, Dict , Tuple 
-from .dialogue_utils import call_dialogue_api
-from .utils import create_task_id
+from .dialogue import call_dialogue_api
+from src.core.utils import create_task_id
 from io import BytesIO
 from underthesea import word_tokenize
 
@@ -36,7 +36,7 @@ class AcousticAnalyzer:
     'à', 'ạ', 'dạ', 'vâng', 'ừ', 'ừm', 'ờ', 'ơi', 'ấy', 'nhá', 'nha',
     'hả', 'hử', 'ư', 'ê', 'ơ', 'chứ', 'thì', 'là', 'kiểu', 'dạng',
     'đấy', 'nhỉ', 'nhé', 'vậy', 'nên', 'rồi', 'cái', 'ấy là', 'với',
-    'mình', 'bên', 'em', 'chị', 'anh', 'luôn', 'luôn ạ', 'dạ vâng'
+    'mình', 'bên', 'em', 'chị', 'anh', 'luôn', 'luôn ạ', 'dạ vâng', 'vầng'
 }
     
     def __init__(self, audio_data: np.ndarray, sample_rate: int, non_silent_intervals: List[Tuple[int, int]]):

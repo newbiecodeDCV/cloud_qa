@@ -5,15 +5,22 @@ import json
 from pathlib import Path
 from datetime import datetime
 from typing import Any, Optional
+import os
 
-from utils import hash_str, create_task_id
-from dialogue_utils import call_dialogue_api
-from audio_analysis import extract_features
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+    
+from src.core.utils import hash_str, create_task_id
+from src.audio_processing.dialogue import call_dialogue_api
+from src.audio_processing.analysis import extract_features
 
 
+
+PROJECT_ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 def save_json_result(data: Any, prefix: str, output_dir: str = "results"):
     """Lưu kết quả ra file JSON với timestamp"""
-    output_path = Path(output_dir)
+    output_path = PROJECT_ROOT_DIR / output_dir / "dialogue"
     output_path.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
