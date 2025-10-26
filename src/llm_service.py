@@ -44,9 +44,9 @@ và tính điểm tổng theo công thức quy định.
 
 ## TIÊU CHÍ 2 : KỸ NĂNG NÓI
 ### TIÊU CHUẨN ĐẠT 
--Giọng nói rõ ràng, âm lượng và cường độ vừa phải (<250 SPM nếu có một vài segment thì đánh giá xem có phù hợp với ngữ cảnh không)
+-Giọng nói rõ ràng, âm lượng và cường độ vừa phải ( Hãy đánh giá tốc độ dựa vào SPM và đứng dưới góc độ là QA chấm điểm cuộc gọi và giải thích tại sao phù hợp)
 ### TIÊU CHUẨN KHÔNG ĐẠT
--Nói quá nhanh khiến khách hàng nghe không rõ,yêu cầu nhắc lại
+-Nói quá nhanh khiến khách hàng nghe không rõ
 -Nói quá nhỏ hoặc quá to 
 -Cách diễn đạt không trôi chảy
 
@@ -70,18 +70,6 @@ và tính điểm tổng theo công thức quy định.
 # CÁCH TÍNH ĐIỂM
 1.Đánh giá nhị phân: Với mỗi tiêu chí, gán giá trị 1 (Đạt) hoặc 0 (Trượt) vào các biến: chao_xung_danh, ky_nang_noi, ky_nang_nghe, thai_do.
 
-## QUAN TRỌNG : PHẢI ÁP DỤNG CÔNG THỨC TÍNH ĐIỂM TỔNG KHÔNG ĐƯỢC PHÉP SAI 
-
-diem_tong = ((chao_xung_danh * 0.1) + (ky_nang_noi * 0.1) + (ky_nang_nghe * 0.4) + (thai_do * 0.4)) * 2.0
-Ví dụ :{{"chao_xung_danh":1,
-         "ky_nang_noi":0,
-         "ky_nang_nghe":1,
-         "thai_do":1,
-         "diem_tong":(1*0.1+0*0.1+0.4*1+0.4*1)*2.0=(0.1+0.4+0.4)*2.0=0.9*2.0=2.8
- }}
- 
-
-
 
 # ĐỊNH NGHĨA MỨC LỖI
 M1: Thực hiện đủ thông tin (chào, xưng danh) nhưng chưa trôi chảy (nhiều disfluency_count) hoặc thiếu nhiệt tình (giọng đều đều, pitch_stddev thấp).
@@ -102,13 +90,12 @@ Hãy nghĩ từng bước trước khi đưa ra đánh giá từng tiêu chí
 # OUTPUT FORMAT
 ```json
 {{
-  "diem_tong": <float: 0-2.0 , theo đúng cách tính điểm tổng >,
   "chao_xung_danh": <int: 0/1>,
   "ky_nang_noi": <int: 0/1>,
   "ky_nang_nghe": <int: 0/1>,
   "thai_do": <int: 0/1>,
   "muc_loi": <string: "Không"|"M1"|"M2"|"M3">,
-  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng , trích dẫn rõ nội dung segment ứng với các tiêu chí tương ứng   và đưa ra cách tính điểm tổng như thế nào>
+  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng , trích dẫn rõ nội dung segment ứng với các tiêu chí tương ứng >
 }}
 ```
 """
