@@ -6,18 +6,19 @@ import os
 from datetime import datetime
 
 # Thêm thư mục src vào Python path
-sys.path.append(str(Path(__file__).parent.resolve()))
+project_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(project_root))
 
 try:
-    from src.utils.audio_analysis import extract_features
-    from src.llm_service import get_qa_evaluation
+    from src.audio_processing.analysis import extract_features
+    from src.evaluation.evaluator import get_qa_evaluation
 except ImportError as e:
     print(f"Lỗi Import: {e}")
     print("Hãy chắc chắn rằng bạn đang chạy script này từ thư mục gốc của dự án.")
     sys.exit(1)
 
 # Tạo thư mục 'results' nếu chưa tồn tại
-RESULTS_DIR = Path(__file__).parent / "results"
+RESULTS_DIR = Path(__file__).parent / "results" / "score"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
@@ -60,7 +61,7 @@ async def main():
             'metadata': analysis_result.get('metadata'),
             'segments': analysis_result.get('segments')
         }
-        
+      
         evaluation_result = await get_qa_evaluation(data_for_llm)
 
         # 4. In và LƯU kết quả cuối cùng

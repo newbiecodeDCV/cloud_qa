@@ -44,12 +44,17 @@ và tính điểm tổng theo công thức quy định.
 
 ## TIÊU CHÍ 2 : KỸ NĂNG NÓI
 ### TIÊU CHUẨN ĐẠT 
--Giọng nói rõ ràng, âm lượng và cường độ vừa phải ( Hãy đánh giá tốc độ dựa vào SPM và đứng dưới góc độ là QA chấm điểm cuộc gọi và giải thích tại sao phù hợp)
+-Giọng nói rõ ràng, âm lượng và cường độ vừa phải (Tốc độ nói < 220 SPM nếu có vài đoạn có SPM lớn hơn thì hãy DỰA VÀO NGỮ CẢNH CHỨ ĐỪNG VỘI ĐÁNH GIÁ)
+-Giọng nói có điểm nhấn (Dựa vào pitch_hz,silence_ratio và nên đưa ra dẫn chứng trong phần giải thích)
+-Có sự nhấn nhá trong giao tiếp
 ### TIÊU CHUẨN KHÔNG ĐẠT
--Nói quá nhanh khiến khách hàng nghe không rõ
--Nói quá nhỏ hoặc quá to 
--Cách diễn đạt không trôi chảy
-
+-Nói quá nhanh khiến khách hàng NGHE KHÔNG RÕ VÀ YÊU CẦU NHẮC LẠI
+-Cách diễn đạt không trôi chảy, ngập ngừng nhiều,NÓI KHÔNG LƯU LOÁT
+-GIỌNG NÓI ĐỀU ĐỀU,KHÔNG TẠO ĐIỂM NHẤN (Dựa vào pitch_hz,silence_ratio)
+-Nói quá nhỏ khiến khác không nghe rõ và yêu cầu nhắc lại (Ví dụ : chị nói nhỏ quá không nghe rõ gì))
+-Lỗi về sự trôi chảy (Phân biệt rõ 2 loại):
+    1. **Ngập ngừng/Tìm từ:** Diễn đạt không trôi chảy, lặp lại từ, ngập ngừng nhiều với các từ đệm (ví dụ: "ờm", "à", "uh") hoặc các khoảng lặng dài bất thường để suy nghĩ.
+    2. **Hụt hơi/Câu dài:** Giao tiếp bị ngắt quãng, gãy vụn. Dấu hiệu là sales nói một câu quá dài, sau đó bị hụt hơi và phải **ngắt nghỉ đột ngột ở những vị trí không phù hợp** (ví dụ: đang nói giữa một cụm danh từ, động từ) để lấy hơi. Điều này khiến câu nói bị cắt ngang một cách thiếu chuyên nghiệp.
 ## TIÊU CHÍ 3 : KĨ NĂNG NGHE,TRẤN AN
 ### TIÊU CHUẨN ĐẠT
 -Tập trung thể hiện sự đồng cảm,lắng nghe những thông tin khách hàng chia sẻ ( tập trung vào text)
@@ -65,10 +70,6 @@ và tính điểm tổng theo công thức quy định.
 ### TIÊU CHUẨN KHÔNG ĐẠT
 - Có thái độ,ngữ điệu trong cuộc gọi không vui vẻ nhiệt tình
 -Ngôn từ thiếu chuẩn mực,chưa thể hiện sự tôn trọng với khách hàng 
-
-    
-# CÁCH TÍNH ĐIỂM
-1.Đánh giá nhị phân: Với mỗi tiêu chí, gán giá trị 1 (Đạt) hoặc 0 (Trượt) vào các biến: chao_xung_danh, ky_nang_noi, ky_nang_nghe, thai_do.
 
 
 # ĐỊNH NGHĨA MỨC LỖI

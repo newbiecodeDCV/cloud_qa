@@ -1,10 +1,11 @@
 import numpy as np
 import librosa
-import re  
-from typing import List, Dict
-from .dialogue_utils import call_dialogue_api
-from .utils import create_task_id
+import re
+from typing import List, Dict , Tuple 
+from .dialogue import call_dialogue_api
+from src.core.utils import create_task_id
 from io import BytesIO
+from underthesea import word_tokenize
 
 # Ngưỡng để xác định một segment có thể bị lỗi từ API
 MIN_DURATION_FOR_VALID_SEGMENT = 0.25
@@ -21,7 +22,6 @@ class AudioSegment:
         self.speaker_label = 'Sales' if self.original_speaker_id == str(sales_speaker_id) else 'Customer'
         self.text = segment_data.get('text', '')
         self.duration = self.end_time - self.start_time
-        # word_count này vẫn hữu ích cho hàm is_corrupted, nên ta giữ nguyên
         self.word_count = len(self.text.split()) if self.text else 0
         
     def is_corrupted(self) -> bool:
@@ -32,16 +32,14 @@ class AudioSegment:
 
 class AcousticAnalyzer:
     """Phân tích các đặc điểm acoustic của segment"""
-    
-    # THÊM MỚI: Danh sách các từ đệm, ngập ngừng, lễ phép... 
-    # cần lọc bỏ khi tính tốc độ nội dung
     FILLER_WORDS = {
-        'à', 'ờ', 'ừ', 'ừm', 'hừm',  # Từ ngập ngừng
-        'dạ', 'ạ', 'vâng', 'thưa',   # Từ lễ phép (làm tăng số "tiếng" nhưng không phải nội dung)
-        'thì', 'là', 'mà', 'rằng'      # Từ đệm phổ biến
-    }
+    'à', 'ạ', 'dạ', 'vâng', 'ừ', 'ừm', 'ờ', 'ơi', 'ấy', 'nhá', 'nha',
+    'hả', 'hử', 'ư', 'ê', 'ơ', 'chứ', 'thì', 'là', 'kiểu', 'dạng',
+    'đấy', 'nhỉ', 'nhé', 'vậy', 'nên', 'rồi', 'cái', 'ấy là', 'với',
+    'mình', 'bên', 'em', 'chị', 'anh', 'luôn', 'luôn ạ', 'dạ vâng', 'vầng'
+}
     
-    def __init__(self, audio_data: np.ndarray, sample_rate: int, non_silent_intervals: np.ndarray):
+    def __init__(self, audio_data: np.ndarray, sample_rate: int, non_silent_intervals: List[Tuple[int, int]]):
         self.audio_data = audio_data
         self.sample_rate = sample_rate
         self.non_silent_intervals = non_silent_intervals
@@ -50,50 +48,50 @@ class AcousticAnalyzer:
         """Phân tích acoustic features cho một segment"""
         if segment.is_corrupted():
             return {
-                'speed_spm': 0.0,  # <-- TỐI ƯU: Đổi tên key
+                'speed_spm': 0.0,
                 'volume_db': 0.0,
                 'pitch_hz': 0.0,
                 'silence_ratio': 0.0
             }
         
-        speed_spm = self._calculate_spm(segment)  # <-- TỐI ƯU: Gọi hàm mới
+        speed_spm = self._calculate_spm(segment)
         volume_db = self._calculate_volume(segment)
-        pitch_hz = self._calculate_pitch(segment)  # <-- TỐI ƯU: Dùng hàm đã cập nhật
+        pitch_hz = self._calculate_pitch(segment)
         silence_ratio = self._calculate_silence_ratio(segment)
         
         return {
-            'speed_spm': float(speed_spm),  # <-- TỐI ƯU: Đổi tên key
+            'speed_spm': float(speed_spm),
             'volume_db': float(volume_db),
             'pitch_hz': float(pitch_hz),
             'silence_ratio': float(silence_ratio)
         }
     
     def _calculate_spm(self, segment: AudioSegment) -> float:
-        """
-        TỐI ƯU: Tính tốc độ nói (Syllables Per Minute - SPM) đã lọc từ đệm.
-        Đây là tốc độ truyền tải nội dung thực tế.
-        """
-        if segment.duration <= 0.2:
+        """Tính tốc độ nói thực tế (SPM) sau khi lọc filler và từ ngắn"""
+        if segment.duration <= 0.3:
             return 0.0
 
         text = segment.text
-        if not text:
+        if not text or not text.strip():
             return 0.0
 
-        # 1. Tách "tiếng" (syllables/words) bằng regex
-        all_syllables = re.findall(r'\b\w+\b', text.lower())
-        
-        # 2. Đếm "tiếng" chứa nội dung (lọc bỏ filler words)
-        content_syllable_count = 0
-        for syllable in all_syllables:
-            if syllable not in self.FILLER_WORDS:
-                content_syllable_count += 1
-                
-        # 3. Tính SPM dựa trên số "tiếng" có nội dung
-        if content_syllable_count > 0:
-            spm = (content_syllable_count / segment.duration) * 60
-            return spm
-            
+        # Chuẩn hóa: lowercase + giữ chữ, số, khoảng trắng
+        cleaned = re.sub(r'[^\w\s]', ' ', text.lower())
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        if not cleaned:
+            return 0.0
+
+        syllables: List[str] = cleaned.split()
+        content_syllables = [
+            s for s in syllables
+            if len(s) > 1 and s not in self.FILLER_WORDS
+        ]
+
+        if content_syllables:
+            spm = (len(content_syllables) / segment.duration) * 60.0
+            return round(spm, 2)
+
         return 0.0
     
     def _calculate_volume(self, segment: AudioSegment) -> float:
@@ -109,41 +107,28 @@ class AcousticAnalyzer:
         return -100.0 
     
     def _calculate_pitch(self, segment: AudioSegment) -> float:
-        """
-        TỐI ƯU: Tính cao độ giọng nói (Hz) sử dụng thuật toán PYIN.
-        Chính xác và ổn định hơn piptrack rất nhiều.
-        """
+        """Tính cao độ giọng nói (Hz) bằng librosa.pyin"""
         start_sample = int(segment.start_time * self.sample_rate)
         end_sample = int(segment.end_time * self.sample_rate)
-        # Cần chuyển sang float32 cho librosa.pyin
         segment_audio = self.audio_data[start_sample:end_sample].astype(np.float32)
 
         if len(segment_audio) == 0:
             return 0.0
 
-        # fmin và fmax là giới hạn hợp lý cho giọng nói của con người
-        # frame_length mặc định (2048) là đủ, không cần set cứng
         f0, voiced_flag, voiced_prob = librosa.pyin(
             segment_audio,
-            fmin=librosa.note_to_hz('C2'), # ~65 Hz
-            fmax=librosa.note_to_hz('C7'), # ~2093 Hz
+            fmin=librosa.note_to_hz('C2'),  # ~65 Hz
+            fmax=librosa.note_to_hz('C7'),  # ~2093 Hz
             sr=self.sample_rate
         )
-        
 
-        # np.nanmean sẽ tự động tính trung bình và bỏ qua các giá trị nan
         average_pitch = np.nanmean(f0)
-
-        # Nếu toàn bộ segment là unvoiced hoặc im lặng, f0 sẽ toàn nan
-        if np.isnan(average_pitch):
-            return 0.0
-            
-        return float(average_pitch)
+        return float(average_pitch) if not np.isnan(average_pitch) else 0.0
     
     def _calculate_silence_ratio(self, segment: AudioSegment) -> float:
-        """Tính tỷ lệ khoảng lặng trong segment (Giữ nguyên logic của bạn)"""
+        """Tính tỷ lệ khoảng lặng trong segment"""
         if segment.duration == 0:
-            return 0.0 # Tránh chia cho 0
+            return 0.0
 
         segment_speech_duration = 0.0
         for interval in self.non_silent_intervals:
@@ -153,9 +138,7 @@ class AcousticAnalyzer:
                          max(segment.start_time, interval_start_time))
             segment_speech_duration += overlap
         
-        # Đảm bảo thời gian nói không lớn hơn thời lượng segment
         segment_speech_duration = min(segment.duration, segment_speech_duration)
-
         silence_duration = segment.duration - segment_speech_duration
         return (silence_duration / segment.duration)
 
@@ -181,7 +164,6 @@ class MetadataCalculator:
     
     def _calculate_total_duration(self) -> float:
         """Tính tổng thời lượng cuộc gọi"""
-        # Đảm bảo segment cuối cùng được tính
         if not self.dialogue_segments:
             return 0.0
         last_seg = self.dialogue_segments[-1]
@@ -220,7 +202,7 @@ class AudioFeatureExtractor:
         self.task_id = create_task_id(audio_bytes)
     
     def _identify_sales_speaker(self, dialogue_segments: List[Dict]) -> str:
-        """Xác định Sales speaker dựa trên tổng thời lượng nói"""
+        """Xác định Sales dựa trên tổng thời lượng nói"""
         speaker_durations = {}
         
         for seg in dialogue_segments:
@@ -233,12 +215,10 @@ class AudioFeatureExtractor:
                 speaker_durations[speaker_id] = 0.0
             speaker_durations[speaker_id] += duration
         
-        # Sales thường nói nhiều hơn → chọn speaker có tổng thời lượng lớn nhất
         if speaker_durations:
             sales_speaker_id = max(speaker_durations, key=speaker_durations.get)
             return sales_speaker_id
         
-        # Fallback: người nói đầu tiên
         return str(dialogue_segments[0].get('speaker', 'unknown'))
         
     async def extract(self) -> Dict:
@@ -254,23 +234,21 @@ class AudioFeatureExtractor:
         
         # Tự động xác định Sales dựa trên tổng thời lượng nói
         sales_speaker_id = self._identify_sales_speaker(dialogue_segments)
-        self.sales_speaker_id = sales_speaker_id  # Lưu lại để debug
-        print(f">>> Sales Speaker ID được xác định: {sales_speaker_id}")
-        print(f">>> Tổng số segments: {len(dialogue_segments)}")
+        self.sales_speaker_id = sales_speaker_id
         
         # Load audio data
-        # TỐI ƯU: Đảm bảo audio data là float
         audio_data, sample_rate = librosa.load(BytesIO(self.audio_bytes), sr=None, dtype=np.float32)
         
-        
-        # cho audio tổng đài có thể có nhiễu nền
-        non_silent_intervals = librosa.effects.split(audio_data, top_db=40) 
-        
+        # TỐI ƯU: Xác định non_silent_intervals chính xác
+        non_silent_intervals = librosa.effects.split(
+            audio_data,
+            top_db=25  # Giảm xuống 25 để phát hiện âm thanh yếu hơn
+             # Loại bỏ ngắt nghỉ quá ngắn
+        )
         
         analyzer = AcousticAnalyzer(audio_data, sample_rate, non_silent_intervals)
         segment_analysis = self._analyze_segments(dialogue_segments, sales_speaker_id, analyzer)
         
-      
         metadata_calculator = MetadataCalculator(dialogue_segments, sales_speaker_id)
         metadata = metadata_calculator.calculate()
         
@@ -292,15 +270,12 @@ class AudioFeatureExtractor:
             segment = AudioSegment(seg_data, sales_speaker_id)
             acoustic_features = analyzer.analyze_segment(segment)
             
-            # Debug: In ra để kiểm tra
-            # print(f"DEBUG - Original ID: {segment.original_speaker_id}, Sales ID: {sales_speaker_id}, Label: {segment.speaker_label}")
-            
             segment_analysis.append({
                 'speaker': segment.speaker_label,
                 'start_time': segment.start_time,
                 'end_time': segment.end_time,
                 'text': segment.text,
-                **acoustic_features # Tự động unpack {'speed_spm': ..., 'pitch_hz': ...}
+                **acoustic_features
             })
         
         return segment_analysis
