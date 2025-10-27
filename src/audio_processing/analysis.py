@@ -239,11 +239,11 @@ class AudioFeatureExtractor:
         # Load audio data
         audio_data, sample_rate = librosa.load(BytesIO(self.audio_bytes), sr=None, dtype=np.float32)
         
-        # TỐI ƯU: Xác định non_silent_intervals chính xác
+        
         non_silent_intervals = librosa.effects.split(
             audio_data,
             top_db=25  # Giảm xuống 25 để phát hiện âm thanh yếu hơn
-             # Loại bỏ ngắt nghỉ quá ngắn
+            
         )
         
         analyzer = AcousticAnalyzer(audio_data, sample_rate, non_silent_intervals)
@@ -285,7 +285,7 @@ async def extract_features(audio_bytes: bytes) -> Dict:
     """
     Trích xuất các đặc điểm acoustic và metadata, tự động xác định nhân viên Sales.
     """
-    print("=== EXTRACT_FEATURES ĐƯỢC GỌI (OOP VERSION) ===")
+    print("=== EXTRACT_FEATURES ĐƯỢC GỌI  ===")
     extractor = AudioFeatureExtractor(audio_bytes)
     result = await extractor.extract()
     print(f"=== Sales Speaker ID: {extractor.sales_speaker_id if hasattr(extractor, 'sales_speaker_id') else 'N/A'} ===")
