@@ -3,7 +3,7 @@ import json
 # Template prompt được lưu trữ dưới dạng một hằng số private
 _QA_EVALUATION_TEMPLATE = """
 # NHIỆM VỤ
-Phân tích cuộc gọi sales dựa trên transcript và acoustic features, sau đó đánh giá kỹ năng giao tiếp theo các tiêu chí đánh giá 
+Phân tích cuộc gọi sales dựa trên transcript và acoustic features, sau đó đánh giá kỹ năng giao tiếp của Sales theo các tiêu chí đánh giá 
 và tính điểm tổng theo công thức quy định.
 
 # TIÊU CHÍ ĐÁNH GIÁ 
@@ -28,6 +28,8 @@ và tính điểm tổng theo công thức quy định.
 -Lỗi về sự trôi chảy (Phân biệt rõ 2 loại):
     1. **Ngập ngừng/Tìm từ:** Diễn đạt không trôi chảy, lặp lại từ, ngập ngừng nhiều với các từ đệm (ví dụ: "ờm", "à", "uh") hoặc các khoảng lặng dài bất thường để suy nghĩ.
     2. **Hụt hơi/Câu dài:** Giao tiếp bị ngắt quãng, gãy vụn. Dấu hiệu là sales nói một câu quá dài, sau đó bị hụt hơi và phải **ngắt nghỉ đột ngột ở những vị trí không phù hợp** (ví dụ: đang nói giữa một cụm danh từ, động từ) để lấy hơi. Điều này khiến câu nói bị cắt ngang một cách thiếu chuyên nghiệp.
+### CHÚ Ý : TẬP TRUNG VÀO CÁC SEGMENT CỦA SALES
+    
 ## TIÊU CHÍ 3 : KĨ NĂNG NGHE,TRẤN AN
 ### TIÊU CHUẨN ĐẠT
 -Tập trung thể hiện sự đồng cảm,lắng nghe những thông tin khách hàng chia sẻ ( tập trung vào text)
@@ -60,6 +62,7 @@ M3: Khai thác lại thông tin lần 2, kết thúc cuộc gọi vẫn không p
 
 # YÊU CẦU
 Hãy nghĩ từng bước trước khi đưa ra đánh giá từng tiêu chí
+Đánh giá các kĩ năng của Sales 
 # OUTPUT FORMAT
 ```json
 {{
