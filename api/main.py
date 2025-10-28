@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any,List 
 import asyncio
 import sys
 from pathlib import Path
@@ -74,6 +74,8 @@ class EvaluationResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="Thông báo lỗi nếu có")
     created_at: Optional[str] = Field(None, description="Thời gian tạo task")
     completed_at: Optional[str] = Field(None, description="Thời gian hoàn thành")
+    segments: Optional[List[Dict[str, Any]]] = Field(None, description="Dữ liệu các đoạn âm thanh")
+    
 
     class Config:
         json_schema_extra = {
@@ -215,7 +217,8 @@ async def process_evaluation_task(task_id: str, audio_bytes: bytes):
             "ly_do": ly_do,
             "metadata": analysis_result.get('metadata'),
             "created_at": task_storage[task_id]["created_at"],
-            "completed_at": datetime.now().isoformat()
+            "completed_at": datetime.now().isoformat(),
+            "segments": analysis_result.get('segments')
         }
         
         

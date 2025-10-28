@@ -106,8 +106,10 @@ async def get_communication_score_and_analysis(audio_bytes_or_path):
                     
                     # Tạo analysis_result từ metadata (để tương thích với code cũ)
                     metadata = result_data.get("metadata", {})
+                    segments = result_data.get("segments",[] )
+                    
                     analysis_result = {
-                        "segments": [],  # API không trả về segments chi tiết, để rỗng
+                        "segments": segments,
                         "metadata": metadata
                     }
                     
@@ -169,7 +171,7 @@ def extract_and_save_segment(original_audio_path, start_sec, end_sec, output_dir
         return None
 
 
-async def run_full_demo_evaluation(audio_file_path, customer_name, call_date, call_purpose, progress=gr.Progress(track_tqdm=True)):
+async def run_full_demo_evaluation(audio_file_path,  progress=gr.Progress(track_tqdm=True)):
     
     report_str = "Chưa có báo cáo."
     segment_audio_outputs = []
@@ -248,11 +250,9 @@ async def run_full_demo_evaluation(audio_file_path, customer_name, call_date, ca
     report_str = f"""
     BÁO CÁO TỔNG HỢP 3 TIÊU CHÍ (DEMO)
     ======================================
-    Khách hàng: {customer_name if customer_name else 'N/A'}
-    Ngày gọi: {call_date if call_date else 'N/A'}
-    Mục đích: {call_purpose if call_purpose else 'N/A'}
+    
 
-     1. Kỹ năng Giao tiếp (Logic thật) ---
+     1. Kỹ năng Giao tiếp  ---
     Điểm : {comm_score_scaled}/2.0
     Điểm thành phần (0/1):
         - Chào/Xưng danh: {comm_result.get('chao_xung_danh', 'Lỗi')}
@@ -289,7 +289,7 @@ with gr.Blocks(title="Demo Hệ thống Chấm điểm QA", theme=gr.themes.Soft
 
                 with gr.Column(scale=2):
                     call_report_output = gr.Textbox(
-                        label="📄 Báo cáo chi tiết (3 Tiêu chí)",
+                        label="📄 Báo cáo chi tiết ",
                         lines=25, 
                         interactive=False,
                         placeholder="Kết quả chấm điểm chi tiết sẽ hiển thị ở đây..."
