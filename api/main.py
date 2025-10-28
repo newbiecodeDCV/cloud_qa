@@ -29,8 +29,11 @@ sys.path.insert(0, str(project_root))
 try:
     from src.qa_communicate.audio_processing.analysis    import extract_features
     from src.qa_communicate.evaluation.evaluator   import get_qa_evaluation
+<<<<<<< HEAD
     from src.qa_communicate.database.database import init_db, get_db
     from src.qa_communicate.database.repository import EvaluationRepository, SegmentRepository
+=======
+>>>>>>> c795336 (update : use API)
     logger.info("Import thành công các module từ src/")
 except ImportError as e:
     logger.error(f"Lỗi import: {e}")
