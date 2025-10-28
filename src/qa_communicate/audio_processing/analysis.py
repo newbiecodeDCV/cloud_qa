@@ -266,11 +266,12 @@ class AudioFeatureExtractor:
         """Phân tích tất cả segments"""
         segment_analysis = []
         
-        for seg_data in dialogue_segments:
+        for i, seg_data in enumerate(dialogue_segments, start=1):
             segment = AudioSegment(seg_data, sales_speaker_id)
             acoustic_features = analyzer.analyze_segment(segment)
-            
+
             segment_analysis.append({
+                'segment': i,
                 'speaker': segment.speaker_label,
                 'start_time': segment.start_time,
                 'end_time': segment.end_time,
