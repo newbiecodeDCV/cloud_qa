@@ -26,8 +26,8 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from src.audio_processing.analysis import extract_features
-    from src.evaluation.evaluator import get_qa_evaluation
+    from src.qa_communicate.audio_processing.analysis    import extract_features
+    from src.qa_communicate.evaluation.evaluator   import get_qa_evaluation
     logger.info("Import thành công các module từ src/")
 except ImportError as e:
     logger.error(f"Lỗi import: {e}")
@@ -67,7 +67,7 @@ class EvaluationResponse(BaseModel):
     ky_nang_noi: Optional[int] = Field(None, ge=0, le=1, description="Điểm kỹ năng nói (0 hoặc 1)")
     ky_nang_nghe: Optional[int] = Field(None, ge=0, le=1, description="Điểm kỹ năng nghe (0 hoặc 1)")
     thai_do: Optional[int] = Field(None, ge=0, le=1, description="Điểm thái độ (0 hoặc 1)")
-    tong_diem: Optional[int] = Field(None, ge=0, le=2, description="Tổng điểm (0-2)")
+    tong_diem: Optional[float] = Field(None, ge=0, le=2, description="Tổng điểm (0-2)")
     muc_loi: Optional[str] = Field(None, description="Mức lỗi: Không | M1 | M2 | M3")
     ly_do: Optional[str] = Field(None, description="Lý do chi tiết")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Metadata cuộc gọi")
