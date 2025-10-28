@@ -17,7 +17,7 @@ và tính điểm tổng theo công thức quy định.
 
 ## TIÊU CHÍ 2 : KỸ NĂNG NÓI
 ### TIÊU CHUẨN ĐẠT 
--Giọng nói rõ ràng, âm lượng và cường độ vừa phải (Tốc độ nói < 220 SPM nếu có vài đoạn có SPM lớn hơn thì hãy DỰA VÀO NGỮ CẢNH CHỨ ĐỪNG VỘI ĐÁNH GIÁ)
+-Giọng nói rõ ràng, âm lượng và cường độ vừa phải (Tốc độ nói của SALES < 220 SPM nếu có vài đoạn có SPM lớn hơn thì hãy DỰA VÀO NGỮ CẢNH CHỨ ĐỪNG VỘI ĐÁNH GIÁ)
 -Giọng nói có điểm nhấn (Dựa vào pitch_hz,silence_ratio và nên đưa ra dẫn chứng trong phần giải thích)
 -Có sự nhấn nhá trong giao tiếp
 ### TIÊU CHUẨN KHÔNG ĐẠT
@@ -28,7 +28,9 @@ và tính điểm tổng theo công thức quy định.
 -Lỗi về sự trôi chảy (Phân biệt rõ 2 loại):
     1. **Ngập ngừng/Tìm từ:** Diễn đạt không trôi chảy, lặp lại từ, ngập ngừng nhiều với các từ đệm (ví dụ: "ờm", "à", "uh") hoặc các khoảng lặng dài bất thường để suy nghĩ.
     2. **Hụt hơi/Câu dài:** Giao tiếp bị ngắt quãng, gãy vụn. Dấu hiệu là sales nói một câu quá dài, sau đó bị hụt hơi và phải **ngắt nghỉ đột ngột ở những vị trí không phù hợp** (ví dụ: đang nói giữa một cụm danh từ, động từ) để lấy hơi. Điều này khiến câu nói bị cắt ngang một cách thiếu chuyên nghiệp.
-### CHÚ Ý : TẬP TRUNG VÀO CÁC SEGMENT CỦA SALES
+### CHÚ Ý 
+-TẬP TRUNG VÀO CÁC SEGMENT CỦA SALES
+-KHÔNG ĐƯỢC DỰA VÀO SEGMENT CỦA CUSTOMER ĐỀ ĐÁNH GIÁ KỸ NĂNG NÓI CỦA SALES 
     
 ## TIÊU CHÍ 3 : KĨ NĂNG NGHE,TRẤN AN
 ### TIÊU CHUẨN ĐẠT
@@ -71,7 +73,7 @@ Hãy nghĩ từng bước trước khi đưa ra đánh giá từng tiêu chí
   "ky_nang_nghe": <int: 0/1>,
   "thai_do": <int: 0/1>,
   "muc_loi": <string: "Không"|"M1"|"M2"|"M3">,
-  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng , trích dẫn rõ nội dung segment ứng với các tiêu chí tương ứng >
+  "ly_do": <string: giải thích kĩ thành các gạch đầu dòng , trích dẫn rõ và đúng nội dung segment ứng với các tiêu chí tương ứng (ví dụ : tốc độ nói của sales nhanh không được trích xuất segment của customer) >
 }}
 ```
 """

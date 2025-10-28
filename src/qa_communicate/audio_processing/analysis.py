@@ -3,7 +3,7 @@ import librosa
 import re
 from typing import List, Dict , Tuple 
 from .dialogue import call_dialogue_api
-from src.core.utils import create_task_id
+from src.qa_communicate.core.utils import create_task_id
 from io import BytesIO
 from underthesea import word_tokenize
 

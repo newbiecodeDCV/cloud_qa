@@ -2,7 +2,7 @@ import openai
 from dotenv import load_dotenv
 import os
 import json
-from src.prompt.prompts import build_qa_prompt
+from src.qa_communicate.prompt.prompts import build_qa_prompt
 
 # Tải các biến từ file .env vào môi trường
 load_dotenv()
