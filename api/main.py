@@ -1,3 +1,11 @@
+import sys
+import io
+
+# Force UTF-8 encoding for stdout/stderr on Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +35,8 @@ sys.path.insert(0, str(project_root))
 try:
     from src.qa_communicate.audio_processing.analysis import extract_features
     from src.qa_communicate.evaluation.evaluator import get_qa_evaluation
+    from src.qa_communicate.database.database import init_db, get_db
+    from src.qa_communicate.database.repository import EvaluationRepository, SegmentRepository
     logger.info("Import thành công các module từ src/")
 except ImportError as e:
     logger.error(f"Lỗi import: {e}")
@@ -139,107 +149,85 @@ def save_result_to_file(task_id: str, result: Dict[str, Any]) -> Path:
 
 
 async def process_evaluation_task(task_id: str, audio_bytes: bytes):
-    """
-    Background task để xử lý đánh giá cuộc gọi
-    """
-    try:
-        # Cập nhật trạng thái
-        task_storage[task_id]["status"] = "processing"
-        task_storage[task_id]["progress"] = 0.1
-        logger.info(f"[{task_id}] Bắt đầu xử lý...")
-        
-        #  Phân tích âm học
-        logger.info(f"[{task_id}] Đang phân tích acoustic features...")
-        task_storage[task_id]["progress"] = 0.3
-        
-        analysis_result = await extract_features(audio_bytes)
-        
-        if analysis_result.get('status') != 1:
-            error_msg = analysis_result.get('message', 'Lỗi không xác định')
-            logger.error(f"[{task_id}] Lỗi phân tích: {error_msg}")
-            task_storage[task_id].update({
-                "status": "failed",
-                "error_message": f"Lỗi phân tích audio: {error_msg}",
-                "completed_at": datetime.now().isoformat()
-            })
-            return
-        
-        logger.info(f"[{task_id}] ✓ Phân tích acoustic thành công")
-        task_storage[task_id]["progress"] = 0.6
-        
-        #  Đánh giá bằng LLM
-        logger.info(f"[{task_id}] Đang chấm điểm bằng LLM...")
-        
-        data_for_llm = {
-            'metadata': analysis_result.get('metadata'),
-            'segments': analysis_result.get('segments')
-        }
-        
-        evaluation_result = await get_qa_evaluation(data_for_llm)
-        
-        if not evaluation_result or "error" in evaluation_result:
-            error_msg = evaluation_result.get('error', 'Lỗi không xác định') if evaluation_result else 'Không nhận được response'
-            logger.error(f"[{task_id}] Lỗi LLM: {error_msg}")
-            task_storage[task_id].update({
-                "status": "failed",
-                "error_message": f"Lỗi chấm điểm LLM: {error_msg}",
-                "completed_at": datetime.now().isoformat()
-            })
-            return
-        
-        logger.info(f"[{task_id}] ✓ Chấm điểm thành công")
-        task_storage[task_id]["progress"] = 0.9
-        
-        #  Xử lý kết quả 
-        chao_xung_danh = int(evaluation_result.get('chao_xung_danh', 0))
-        ky_nang_noi = int(evaluation_result.get('ky_nang_noi', 0))  
-        ky_nang_nghe = int(evaluation_result.get('ky_nang_nghe', 0))  
-        thai_do = int(evaluation_result.get('thai_do', 0)) 
-        
-        # Tính tổng điểm
-        tong_diem = 0.2*(chao_xung_danh + ky_nang_noi) + 0.8 * (ky_nang_nghe + thai_do)
-        
-        
-        muc_loi = str(evaluation_result.get('muc_loi', 'Không'))
-        ly_do = str(evaluation_result.get('ly_do', 'Không có lý do chi tiết'))
-        
-        
-        final_result = {
-            "task_id": task_id,
-            "status": "completed",
-            "chao_xung_danh": chao_xung_danh,
-            "ky_nang_noi": ky_nang_noi,
-            "ky_nang_nghe": ky_nang_nghe,
-            "thai_do": thai_do,
-            "tong_diem": tong_diem,
-            "muc_loi": muc_loi,
-            "ly_do": ly_do,
-            "metadata": analysis_result.get('metadata'),
-            "created_at": task_storage[task_id]["created_at"],
-            "completed_at": datetime.now().isoformat(),
-            "segments": analysis_result.get('segments')
-        }
-        
-        
-        task_storage[task_id].update(final_result)
-        task_storage[task_id]["progress"] = 1.0
-        
-        
+    """Background task để xử lý đánh giá cuộc gọi"""
+    
+    with get_db() as db:
         try:
-            save_result_to_file(task_id, final_result)
+            # Cập nhật status = processing
+            EvaluationRepository.update_status(db, task_id, 'processing')
+            logger.info(f"[{task_id}] Bắt đầu xử lý...")
+            
+            # Phân tích acoustic
+            logger.info(f"[{task_id}] Đang phân tích acoustic features...")
+            analysis_result = await extract_features(audio_bytes)
+            
+            if analysis_result.get('status') != 1:
+                error_msg = analysis_result.get('message', 'Lỗi không xác định')
+                logger.error(f"[{task_id}] Lỗi phân tích: {error_msg}")
+                EvaluationRepository.update_error(db, task_id, f"Lỗi phân tích audio: {error_msg}")
+                return
+            
+            logger.info(f"[{task_id}] ✓ Phân tích acoustic thành công")
+            
+            # Đánh giá bằng LLM
+            logger.info(f"[{task_id}] Đang chấm điểm bằng LLM...")
+            data_for_llm = {
+                'metadata': analysis_result.get('metadata'),
+                'segments': analysis_result.get('segments')
+            }
+            
+            evaluation_result = await get_qa_evaluation(data_for_llm)
+            
+            if not evaluation_result or "error" in evaluation_result:
+                error_msg = evaluation_result.get('error', 'Lỗi không xác định') if evaluation_result else 'Không nhận được response'
+                logger.error(f"[{task_id}] Lỗi LLM: {error_msg}")
+                EvaluationRepository.update_error(db, task_id, f"Lỗi chấm điểm LLM: {error_msg}")
+                return
+            
+            logger.info(f"[{task_id}] ✓ Chấm điểm thành công")
+            
+            # Tính toán kết quả
+            chao_xung_danh = int(evaluation_result.get('chao_xung_danh', 0))
+            ky_nang_noi = int(evaluation_result.get('ky_nang_noi', 0))
+            ky_nang_nghe = int(evaluation_result.get('ky_nang_nghe', 0))
+            thai_do = int(evaluation_result.get('thai_do', 0))
+            tong_diem = 0.2 * (chao_xung_danh + ky_nang_noi) + 0.8 * (ky_nang_nghe + thai_do)
+            
+            # Chuẩn bị dữ liệu để lưu vào DB
+            result_data = {
+                'chao_xung_danh': chao_xung_danh,
+                'ky_nang_noi': ky_nang_noi,
+                'ky_nang_nghe': ky_nang_nghe,
+                'thai_do': thai_do,
+                'tong_diem': tong_diem,
+                'muc_loi': str(evaluation_result.get('muc_loi', 'Không')),
+                'ly_do': str(evaluation_result.get('ly_do', '')),
+                'metadata': analysis_result.get('metadata'),
+                'segments': analysis_result.get('segments')
+            }
+            
+            # Lưu kết quả vào database
+            evaluation = EvaluationRepository.update_result(db, task_id, result_data)
+            
+            # Lưu segments
+            if evaluation and analysis_result.get('segments'):
+                SegmentRepository.create_bulk(
+                    db, 
+                    evaluation.id, 
+                    analysis_result.get('segments')
+                )
+            
+            # Lưu file JSON (optional - để backup)
+            try:
+                save_result_to_file(task_id, result_data)
+            except Exception as e:
+                logger.warning(f"[{task_id}] Không thể lưu file JSON: {e}")
+            
+            logger.info(f"[{task_id}] ✓ Hoàn thành. Điểm: {tong_diem}/2")
+            
         except Exception as e:
-            logger.warning(f"[{task_id}] Không thể lưu file (nhưng vẫn có kết quả): {e}")
-        
-        logger.info(f"[{task_id}] ✓ Hoàn thành đánh giá. Tổng điểm: {tong_diem}/2")
-        
-    except Exception as e:
-        logger.error(f"[{task_id}] ✗ Lỗi hệ thống: {e}", exc_info=True)
-        task_storage[task_id].update({
-            "status": "failed",
-            "error_message": f"Lỗi hệ thống: {str(e)}",
-            "completed_at": datetime.now().isoformat()
-        })
-
+            logger.error(f"[{task_id}] ✗ Lỗi hệ thống: {e}", exc_info=True)
+            EvaluationRepository.update_error(db, task_id, f"Lỗi hệ thống: {str(e)}")
 
 
 
@@ -396,24 +384,8 @@ async def delete_task(task_id: str):
 @app.get("/api/v1/statistics")
 async def get_statistics():
     """Lấy thống kê tổng quan"""
-    all_tasks = list(task_storage.values())
-    
-    stats = {
-        "total_tasks": len(all_tasks),
-        "pending": len([t for t in all_tasks if t["status"] == "pending"]),
-        "processing": len([t for t in all_tasks if t["status"] == "processing"]),
-        "completed": len([t for t in all_tasks if t["status"] == "completed"]),
-        "failed": len([t for t in all_tasks if t["status"] == "failed"]),
-    }
-    
-    completed_tasks = [t for t in all_tasks if t["status"] == "completed"]
-    if completed_tasks:
-        avg_score = sum(t.get("tong_diem", 0) for t in completed_tasks) / len(completed_tasks)
-        stats["average_score"] = round(avg_score, 2)
-    else:
-        stats["average_score"] = None
-    
-    return stats
+    with get_db() as db:
+        return EvaluationRepository.get_statistics(db)
 
 
 
@@ -452,6 +424,11 @@ async def startup_event():
     """Actions on startup"""
     logger.info("="*60)
     logger.info("🚀 Call Center QA API đang khởi động...")
+    
+    # Initialize database
+    init_db()
+    logger.info("✅ Database initialized")
+    
     logger.info(f"📁 Results directory: {RESULTS_DIR}")
     logger.info(f"📖 API Docs: http://localhost:8000/docs")
     logger.info("="*60)
