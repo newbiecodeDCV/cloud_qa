@@ -2,8 +2,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any,List 
-import asyncio
+from typing import Optional, Dict, Any, List
 import sys
 from pathlib import Path
 import json
@@ -26,8 +25,8 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from src.qa_communicate.audio_processing.analysis    import extract_features
-    from src.qa_communicate.evaluation.evaluator   import get_qa_evaluation
+    from src.qa_communicate.audio_processing.analysis import extract_features
+    from src.qa_communicate.evaluation.evaluator import get_qa_evaluation
     logger.info("Import thành công các module từ src/")
 except ImportError as e:
     logger.error(f"Lỗi import: {e}")

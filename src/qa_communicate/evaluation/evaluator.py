@@ -23,7 +23,6 @@ else:
     print("⚠️ CẢNH BÁO: Thiếu OPENAI_API_KEY hoặc OPENAI_API_BASE trong file .env")
 
 
-
 async def get_qa_evaluation(call_data: dict) -> dict:
     """
     Gửi prompt đến LLM và nhận kết quả đánh giá QA.

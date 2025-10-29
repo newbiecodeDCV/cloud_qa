@@ -79,7 +79,6 @@ class ScriptEvaluator:
             "sale_texts": sale_texts,
             "step_detail": self.step_detail
         })
-        print(response.content)
         criteria_evals = literal_eval(response.content)
         criteria_evals = self.score_and_response(criteria_evals, self.criteria_score)
         return {'status': 1,
