@@ -2,9 +2,14 @@ from src.qa_communicate.audio_processing.dialogue import call_dialogue_api
 from src.qa_sales.modules.database import create_csvdatabase
 from src.qa_sales.modules.dialogue_processor import DialogueProcessor
 from src.qa_sales.modules.evaluators import ScriptEvaluator
+from typing import List, Dict
+from logging import getLogger
+import pandas as pd
+
+logger = getLogger(__name__)
 
 
-class QASalesMainProcessor:
+class QASalesEvaluator:
     def __init__(self,
                  model: str = "gpt-4.1-mini",
                  csv_path: str = "data/sale_criteria.tsv",
@@ -22,6 +27,22 @@ class QASalesMainProcessor:
                                                 chroma_db=self.sale_script_db,
                                                 tsv_path=csv_path)
         self.pre_prompt_template = preprocess_prompt_template
+        df = pd.read_csv(csv_path, delimiter="\t")
+        self.criteria_name = dict(zip(df['criteria_id'], df['criteria_name']))
+
+    def process_result(self, results: List[Dict]):
+        # Process the result from the evaluation
+        detail_result = "Đánh giá kỹ năng bán hàng theo các tiêu chí:\n"
+        final_score = 0.0
+        for item in results:
+            criteria_id = item['criteria_id']
+            criteria_name = self.criteria_name.get(criteria_id, "Unknown")
+            status = 'đạt' if item.get('status', 0) == 1 else 'chưa đạt'
+            note = item.get('Note', '')
+            score = item.get('score', 0)
+            final_score += score
+            detail_result += f"Tiêu chí: {criteria_name}, đánh giá: {status}, điểm: {score}, nhận xét: {note}"
+        return detail_result, final_score
 
     async def run_evaluate(self,
                            audio_bytes: bytes,
@@ -47,15 +68,8 @@ class QASalesMainProcessor:
         if results['status'] != 1:
             return {'status': -1,
                     'message': 'Failed to evaluate dialogue'}
-        return results
+        detail_result, final_score = self.process_result(results=results['criteria_evals'])
+        return {'status': 1,
+                'detail_result': detail_result,
+                'final_score': final_score}
 
-
-if __name__ == "__main__":
-    processor = QASalesMainProcessor()
-    with open("src/qa_sales/modules/232949_173039217479455.wav", "rb") as f:
-        audio_bytes = f.read()
-    
-    import asyncio
-    result = asyncio.run(processor.run_evaluate(audio_bytes=audio_bytes,
-                                                task_id=1234))
-    print(result)
