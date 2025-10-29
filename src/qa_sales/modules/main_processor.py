@@ -1,4 +1,4 @@
-from src.utils.dialogue_utils import call_dialogue_api
+from src.qa_communicate.audio_processing.dialogue import call_dialogue_api
 from src.qa_sales.modules.database import create_csvdatabase
 from src.qa_sales.modules.dialogue_processor import DialogueProcessor
 from src.qa_sales.modules.evaluators import ScriptEvaluator
