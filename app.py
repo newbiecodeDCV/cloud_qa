@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 import gradio as gr
 import pandas as pd
@@ -107,15 +106,10 @@ async def get_communication_score_and_analysis(audio_bytes_or_path):
                     
                     # Tạo analysis_result từ metadata (để tương thích với code cũ)
                     metadata = result_data.get("metadata", {})
-<<<<<<< HEAD
                     segments = result_data.get("segments",[] )
                     
                     analysis_result = {
                         "segments": segments,
-=======
-                    analysis_result = {
-                        "segments": [],  # API không trả về segments chi tiết, để rỗng
->>>>>>> c795336 (update : use API)
                         "metadata": metadata
                     }
                     
@@ -177,11 +171,7 @@ def extract_and_save_segment(original_audio_path, start_sec, end_sec, output_dir
         return None
 
 
-<<<<<<< HEAD
 async def run_full_demo_evaluation(audio_file_path,  progress=gr.Progress(track_tqdm=True)):
-=======
-async def run_full_demo_evaluation(audio_file_path, customer_name, call_date, call_purpose, progress=gr.Progress(track_tqdm=True)):
->>>>>>> c795336 (update : use API)
     
     report_str = "Chưa có báo cáo."
     segment_audio_outputs = []
@@ -262,11 +252,7 @@ async def run_full_demo_evaluation(audio_file_path, customer_name, call_date, ca
     ======================================
     
 
-<<<<<<< HEAD
      1. Kỹ năng Giao tiếp  ---
-=======
-     1. Kỹ năng Giao tiếp (Logic thật) ---
->>>>>>> c795336 (update : use API)
     Điểm : {comm_score_scaled}/2.0
     Điểm thành phần (0/1):
         - Chào/Xưng danh: {comm_result.get('chao_xung_danh', 'Lỗi')}
@@ -303,11 +289,7 @@ with gr.Blocks(title="Demo Hệ thống Chấm điểm QA", theme=gr.themes.Soft
 
                 with gr.Column(scale=2):
                     call_report_output = gr.Textbox(
-<<<<<<< HEAD
                         label="📄 Báo cáo chi tiết ",
-=======
-                        label="📄 Báo cáo chi tiết (3 Tiêu chí)",
->>>>>>> c795336 (update : use API)
                         lines=25, 
                         interactive=False,
                         placeholder="Kết quả chấm điểm chi tiết sẽ hiển thị ở đây..."
@@ -382,14 +364,6 @@ if __name__ == "__main__":
     os.makedirs(temp_dir, exist_ok=True)
     print(f"Thư mục tạm cho audio segments: {temp_dir}")
     demo.launch(share=True, debug=True) 
-<<<<<<< HEAD
-
-=======
-import gradio as gr
-import pandas as pd
-import numpy as np
-=======
->>>>>>> c795336 (update : use API)
 
 # --- Các hàm giả lập (mock functions) ---
 # Bạn sẽ thay thế các hàm này bằng lời gọi API thực tế của mình.
@@ -543,4 +517,3 @@ with gr.Blocks(title="Hệ thống AI hỗ trợ Sales và CSKH", theme=gr.theme
 # Chạy ứng dụng
 if __name__ == "__main__":
     demo.launch()
->>>>>>> 2632b50 (Add Gradio interface for CRM compliance checking and call evaluation,, and set up project structure with necessary requirements and tests.)
