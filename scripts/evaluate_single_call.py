@@ -10,8 +10,8 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from src.audio_processing.analysis import extract_features
-    from src.evaluation.evaluator import get_qa_evaluation
+    from src.qa_communicate.audio_processing.analysis import extract_features
+    from src.qa_communicate.evaluation.evaluator import get_qa_evaluation
 except ImportError as e:
     print(f"Lỗi Import: {e}")
     print("Hãy chắc chắn rằng bạn đang chạy script này từ thư mục gốc của dự án.")

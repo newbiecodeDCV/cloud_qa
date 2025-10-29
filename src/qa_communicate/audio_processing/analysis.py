@@ -242,7 +242,7 @@ class AudioFeatureExtractor:
         
         non_silent_intervals = librosa.effects.split(
             audio_data,
-            top_db=25  # Giảm xuống 25 để phát hiện âm thanh yếu hơn
+            top_db=25  
             
         )
         
