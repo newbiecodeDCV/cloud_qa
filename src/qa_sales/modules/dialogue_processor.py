@@ -2,10 +2,13 @@ from typing import List, Dict, Any
 from langchain_community.vectorstores import Chroma
 from litellm import completion
 from dotenv import load_dotenv
+from logging import basicConfig, getLogger, INFO
 import os
 import ast
 import openai
-import json
+
+basicConfig(level=INFO)
+logger = getLogger(__name__)
 
 
 load_dotenv()
@@ -18,7 +21,9 @@ openai.base_url = base_url
 
 class DialogueProcessor:
 
-    def extract_speaker_roles(dialogue: List[Dict[str, Any]]):
+    def extract_speaker_roles(self,
+                              prompt_template: str,
+                              dialogue: List[Dict[str, Any]]):
         """Extract speaker roles from the dialogue.
 
         Args:
@@ -29,39 +34,42 @@ class DialogueProcessor:
             the dialogue with speaker roles assigned.
             [{"speaker": "nhan vien sale", "text": "Alo em chao anh a"}, ...]
         """
-        prompt = open("prompt_templates/preprocess.txt").read().format(dialogue=dialogue)
+        # try:
+        prompt = open(prompt_template).read().format(dialogue=dialogue)
         messages = [{"role": "user", "content": prompt}]
-        try:
-            response = completion(
-                model="gpt-4.1-mini",
-                messages=messages,
-                temperature=0.0,
-                api_key=api_key,
-                base_url=base_url,
-            )
-        except Exception as e:
-            print(f"Error during completion: {e}")
+        
+        response = completion(
+            model="gpt-4.1-mini",
+            messages=messages,
+            temperature=0.0,
+            api_key=api_key,
+            base_url=base_url,
+        )
 
         # ==========================
         # 🔹 Parse kết quả structured
         # ==========================
-        arguments = response.choices[0].message.content
-        arguments_dict = ast.literal_eval(arguments)
-        return arguments_dict, response.usage.total_tokens
+        dialogue = response.choices[0].message.content
+        dialogue = ast.literal_eval(dialogue)
+        return {
+            "status": 1,
+            "dialogue": dialogue,
+            "tokens": response.usage.total_tokens,
+            "message": "Success"
+        }
+        # except Exception as e:
+        #     logger.error(f"Error during extract speaker role: {e}")
+        #     return {
+        #         "status": -1,
+        #         "dialogue": [],
+        #         "tokens": 0,
+        #         "message": "Failed to extract speaker roles"
+        #     }
 
-    def classify_utterances_to_steps(utterances: List[Dict[str, Any]],
-                                     chroma_db: Chroma,
-                                     top_k: int = 1) -> List[Dict[str, Any]]:
-        for utterance in utterances:
-            query = utterance['text']
-            nearest_step = chroma_db.similarity_search(query, k=top_k)[0]
-            utterance['step_id'] = nearest_step.metadata['step_id']
-        return utterances
-
-    def __call__(self, dialogue: List[Dict[str, Any]], chroma_db: Chroma):
-        sale_dialogue,  preprocess_token = self.extract_speaker_roles(dialogue)
-        sale_dialogue = self.classify_utterances_to_steps(sale_dialogue,
-                                                          chroma_db,
-                                                          top_k=1)
-        return sale_dialogue, preprocess_token
+    def __call__(self,
+                 prompt_template: str,
+                 dialogue: List[Dict[str, Any]]):
+        result = self.extract_speaker_roles(prompt_template=prompt_template,
+                                            dialogue=dialogue)
+        return result
 

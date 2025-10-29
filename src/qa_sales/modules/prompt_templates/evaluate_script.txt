@@ -13,10 +13,10 @@
 		- Note: Nếu đạt thì chỉ rõ ra đã đạt được những hành động gì, nếu không đạt cũng chỉ rõ ra những hành động nào chưa làm được
         - Bước 5.3: Trả về output theo đúng format sau được định nghĩa sau đây, ngoài ra tuyệt đối không trả về thêm gì khác:
         Format trả về là một list các python dictionary có dạng:
-        [{'criteria_id': (số thứ tự của tiêu chí), 'status': (1 nếu được đánh giá là "Đạt", 0 nếu là "Không đạt"), 'Note': Note đi kèm của tiêu chí đó}]
+        [{{'criteria_id': (số thứ tự của tiêu chí), 'status': (1 nếu được đánh giá là "Đạt", 0 nếu là "Không đạt"), 'Note': Note đi kèm của tiêu chí đó}}]
 
 [Sale Desc]: Lời thoại của nhân viên được chia vào các tiêu chí tương ứng. Cấu trúc có dạng như sau:
-	Criteria ID: số thứ tự của tiêu chí
+	criteria ID: số thứ tự của tiêu chí
 	- Lời thoại 1 của nhân viên sale ứng với tiêu chí đó
 	- Lời thoại 2 của nhân viên sale ứng với tiêu chí đó
 	...

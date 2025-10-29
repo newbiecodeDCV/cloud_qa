@@ -23,4 +23,8 @@ test.py
 **/__pycache__/
 **/*.pyc
 .vscode/
+<<<<<<< HEAD
 >>>>>>> 71d4fd3 (update dialogue preprocessor)
+=======
+src/qa_sales/modules/databases/sale_criteria_db
+>>>>>>> deb5ac2 (add: complete main processor for qa sales)
