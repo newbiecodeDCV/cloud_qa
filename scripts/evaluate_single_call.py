@@ -18,7 +18,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Tạo thư mục 'results' nếu chưa tồn tại
-RESULTS_DIR = Path(__file__).parent / "results" / "score"
+RESULTS_DIR = Path(__file__).parent.parent / "results" / "score"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 

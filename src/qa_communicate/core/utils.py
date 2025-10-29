@@ -40,4 +40,9 @@ def create_task_id(audio_bytes: bytes = None, url: str = None):
 
     task_id = f"{audio_id}"
     task_id = int(f"{hash_str(task_id, 6)}")
-    return task_id
+
+
+def seconds_to_min_sec(seconds):
+    minutes = int(seconds) // 60
+    secs = int(seconds) % 60
+    return f"{minutes}:{secs:02d}"
