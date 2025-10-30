@@ -27,7 +27,7 @@ engine = create_engine(
     connect_args={
         "check_same_thread": False  
     },
-    poolclass=StaticPool  
+    
 )
 
 

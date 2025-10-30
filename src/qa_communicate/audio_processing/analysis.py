@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 import re
 from typing import List, Dict , Tuple 
-from .dialogue import call_dialogue_api
+from src.qa_communicate.audio_processing.dialogue import call_dialogue_api
 from src.qa_communicate.core.utils import create_task_id
 from io import BytesIO
 from underthesea import word_tokenize
@@ -242,7 +242,7 @@ class AudioFeatureExtractor:
         
         non_silent_intervals = librosa.effects.split(
             audio_data,
-            top_db=25  
+            top_db=25  # Giảm xuống 25 để phát hiện âm thanh yếu hơn
             
         )
         
