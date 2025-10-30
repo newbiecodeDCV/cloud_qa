@@ -2,7 +2,7 @@ from src.qa_communicate.audio_processing.analysis import extract_features
 from src.qa_communicate.evaluation.evaluator import get_qa_evaluation
 from src.qa_sales.modules.qa_evaluators import QASalesEvaluator
 from logging import getLogger
-
+import asyncio
 logger = getLogger(__name__)
 
 
@@ -76,14 +76,19 @@ class QAMainEvaluator:
         return detail_result, tong_diem
 
     async def evaluate_sale_skills(self,
-                                   audio_bytes: bytes,
-                                   task_id: int):
+                               audio_bytes: bytes,
+                               task_id: int):
         """
         Evaluate the sales skills in a sales call.
         """
         result = await self.qa_evaluator.run_evaluate(audio_bytes=audio_bytes,
-                                                      task_id=task_id)
-        return result['detail_result'], result['final_score']
+                                                    task_id=task_id)
+    
+      
+        if isinstance(result, dict):
+            return result.get('detail_result', ''), result.get('final_score', 0.0)
+        else:
+            return result
 
     async def run_evaluate(self,
                            audio_bytes: bytes,
@@ -91,8 +96,11 @@ class QAMainEvaluator:
         """
         Run the full evaluation process: communication quality and sales skills.
         """
-        communication_result, communication_score = await self.evaluate_communication(audio_bytes, task_id)
-        sales_skills_result, sales_skills_score = await self.evaluate_sale_skills(audio_bytes, task_id)
+        comm_task = self.evaluate_communication(audio_bytes, task_id)
+        sale_task = self.evaluate_sale_skills(audio_bytes, task_id)
+
+        (communication_result, communication_score), (sales_skills_result, sales_skills_score) = await asyncio.gather( comm_task, sale_task)
+          
 
         total_score = communication_score + sales_skills_score
         final_detail_result = f"{communication_result}\n{sales_skills_result}\nTổng điểm cuối cùng: {total_score}"

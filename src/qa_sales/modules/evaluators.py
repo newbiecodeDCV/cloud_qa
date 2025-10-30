@@ -116,26 +116,8 @@ class ScriptEvaluator:
             "step_detail": self.step_detail
         })
 
-        logger.info("=== [LLM evaluate response content] ===\n%s\n===============================", response.content)
-
-        criteria_evals = None
-        parse_error = None
-        for parse_fn in (json.loads, literal_eval):
-            try:
-                criteria_evals = parse_fn(response.content)
-                break
-            except Exception as e:
-                parse_error = e
-                logger.debug("Parser %s failed: %s", parse_fn.__name__, e)
-
-        if criteria_evals is None:
-            logger.error("❌ Không parse được eval response.\nNội dung:\n%s\nLỗi: %s",
-                         response.content, parse_error, exc_info=True)
-            raise RuntimeError(f"Failed to parse eval response: {parse_error}")
-
+        criteria_evals = literal_eval(response.content)
         criteria_evals = self.score_and_response(criteria_evals, self.criteria_score)
-        return {
-            'status': 1,
-            'criteria_evals': criteria_evals,
-            'message': 'Success'
-        }
+        return {'status': 1,
+                'criteria_evals': criteria_evals,
+                'message': 'Success'}

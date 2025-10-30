@@ -112,7 +112,7 @@ async def evaluate_communication_tracked(task_id: str, data_for_llm: dict):
         
         log_feedback(
             key="communication_score",
-            score=communication_score / 2.0,  # Normalize to 0-1
+            score=communication_score / 2.0,  
             comment=f"Score: {communication_score}/2.0"
         )
         logger.info(f"[{task_id}] ✓ Chấm giao tiếp: {communication_score}/2.0")
@@ -139,7 +139,7 @@ async def evaluate_sales_tracked(task_id: str, audio_bytes: bytes):
         
         log_feedback(
             key="sales_score",
-            score=sales_score / 10.0,  # Normalize nếu max score là 10
+            score=sales_score / 10.0, 
             comment=f"Sales score: {sales_score}"
         )
         logger.info(f"[{task_id}] ✓ Chấm bán hàng: {sales_score}")
@@ -174,10 +174,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Production nen gioi han domain cu the
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -210,7 +210,7 @@ class FullEvaluationResponse(BaseModel):
     sales_score: Optional[float] = Field(None, description="Điểm bán hàng")
     sales_criteria_details: Optional[List[Dict[str, Any]]] = Field(None, description="Chi tiết từng tiêu chí bán hàng")
     
-    # Tổng hợp
+    
     total_score: Optional[float] = Field(None, description="Tổng điểm (Giao tiếp + Bán hàng)")
     
     metadata: Optional[Dict[str, Any]] = Field(None)
@@ -392,7 +392,7 @@ async def process_evaluation_task(task_id: str, audio_bytes: bytes):
 async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
     """Background task đánh giá cả 2 tiêu chí - WITH LANGSMITH"""
     
-    # Thêm metadata
+    
     add_metadata({
         "task_id": task_id,
         "audio_size_mb": len(audio_bytes) / (1024 * 1024),
@@ -405,7 +405,7 @@ async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
             EvaluationRepository.update_status(db, task_id, 'processing')
             logger.info(f"[{task_id}] Bắt đầu đánh giá tổng hợp (2 tiêu chí)...")
             
-            # 1. Phân tích acoustic
+            
             analysis_result = await extract_features_tracked(task_id, audio_bytes)
             
             if analysis_result.get('status') != 1:
@@ -548,7 +548,7 @@ async def evaluate_full(
                 file_size_mb=round(file_size_mb, 2)
             )
         
-        # Sử dụng background task cho đánh giá tổng hợp
+        
         background_tasks.add_task(process_full_evaluation_task, task_id, audio_bytes)
         
         return TaskStatusResponse(
@@ -580,7 +580,7 @@ async def evaluate(
         if file_size_mb > 50:
             raise HTTPException(status_code=400, detail=f"File quá lớn ({file_size_mb:.2f}MB)")
         
-        # Tạo task_id từ audio_bytes (deterministic)
+        
         task_id = str(create_task_id(audio_bytes=audio_bytes))
         logger.info(f"[{task_id}] Nhận request: {audio_file.filename}")
         
@@ -623,7 +623,7 @@ async def get_full_task_result(task_id: str):
             segments = SegmentRepository.get_by_evaluation_id(db, evaluation.id)
             segments_data = [seg.to_dict() for seg in segments]
         
-        # Parse ly_do để tách giao tiếp và bán hàng
+        
         ly_do_giao_tiep = evaluation.ly_do if evaluation.ly_do else ""
         sales_detail = ""
         
@@ -632,7 +632,7 @@ async def get_full_task_result(task_id: str):
             ly_do_giao_tiep = parts[0].replace("=== GIAO TIẾP ===", "").strip()
             sales_detail = parts[1].strip() if len(parts) > 1 else ""
         
-        # Tính điểm giao tiếp
+       
         communication_score = None
         if evaluation.tong_diem is not None:
             communication_score = 0.2 * (evaluation.chao_xung_danh + evaluation.ky_nang_noi) + \
@@ -648,8 +648,8 @@ async def get_full_task_result(task_id: str):
             thai_do=evaluation.thai_do,
             muc_loi=evaluation.muc_loi,
             ly_do_giao_tiep=ly_do_giao_tiep,
-            sales_score=None,  # TODO: Có thể lưu riêng trong database
-            sales_criteria_details=None,  # TODO: Parse từ sales_detail
+            sales_score=None,  
+            sales_criteria_details=None,  
             total_score=evaluation.tong_diem,
             metadata={
                 'duration': evaluation.duration,
@@ -806,7 +806,7 @@ async def shutdown_event():
     """Actions on shutdown"""
     logger.info(" API dang tat...")
     
-    # Luu task storage vao file truoc khi tat (optional)
+    
     try:
         backup_file = RESULTS_DIR / "task_storage_backup.json"
         with open(backup_file, 'w', encoding='utf-8') as f:
