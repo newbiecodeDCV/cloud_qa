@@ -105,6 +105,7 @@ async def get_communication_score_and_analysis(audio_bytes_or_path):
                     }
                     
                     # Tạo analysis_result từ metadata (để tương thích với code cũ)
+                    
                     metadata = result_data.get("metadata", {})
                     segments = result_data.get("segments",[] )
                     
