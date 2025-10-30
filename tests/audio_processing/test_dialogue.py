@@ -11,9 +11,9 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
     
-from src.core.utils import hash_str, create_task_id
-from src.audio_processing.dialogue import call_dialogue_api
-from src.audio_processing.analysis import extract_features
+from src.qa_communicate.core.utils import hash_str, create_task_id
+from src.qa_communicate.audio_processing.dialogue import call_dialogue_api
+from src.qa_communicate.audio_processing.analysis import extract_features
 
 
 
