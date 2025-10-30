@@ -17,7 +17,15 @@ import uuid
 
 
 file_handler = logging.FileHandler('api_server.log', encoding='utf-8')
-
+from api.langsmith_integration import (
+    trace_chain, 
+    trace_llm, 
+    trace_tool,
+    log_feedback,
+    add_metadata,
+    add_tags,
+    LANGSMITH_ENABLED
+)
 stream_handler = None
 if sys.platform == 'win32':
     stream_handler = logging.StreamHandler(
@@ -59,6 +67,93 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+@trace_tool(name="acoustic_feature_extraction")
+async def extract_features_tracked(task_id: str, audio_bytes: bytes):
+    """Wrapper cho extract_features với LangSmith tracking"""
+    logger.info(f"[{task_id}] Đang phân tích acoustic features...")
+    add_tags("acoustic", "feature-extraction")
+    
+    analysis_result = await extract_features(audio_bytes)
+    
+    if analysis_result.get('status') == 1:
+        log_feedback(
+            key="acoustic_success",
+            score=1.0,
+            comment=f"Duration: {analysis_result.get('metadata', {}).get('duration')}s"
+        )
+        logger.info(f"[{task_id}] ✓ Phân tích acoustic thành công")
+    else:
+        log_feedback(
+            key="acoustic_error",
+            score=0.0,
+            comment=analysis_result.get('message', 'Unknown error')
+        )
+    
+    return analysis_result
+
+
+@trace_llm(name="communication_evaluation", model="gpt-4")
+async def evaluate_communication_tracked(task_id: str, data_for_llm: dict):
+    """Wrapper cho get_qa_evaluation với LangSmith tracking"""
+    logger.info(f"[{task_id}] Đang chấm Kỹ năng Giao tiếp...")
+    add_tags("communication", "llm-evaluation")
+    
+    evaluation_result = await get_qa_evaluation(data_for_llm)
+    
+    if evaluation_result and "error" not in evaluation_result:
+        # Tính điểm
+        chao_xung_danh = int(evaluation_result.get('chao_xung_danh', 0))
+        ky_nang_noi = int(evaluation_result.get('ky_nang_noi', 0))
+        ky_nang_nghe = int(evaluation_result.get('ky_nang_nghe', 0))
+        thai_do = int(evaluation_result.get('thai_do', 0))
+        communication_score = 0.2 * (chao_xung_danh + ky_nang_noi) + \
+                            0.8 * (ky_nang_nghe + thai_do)
+        
+        log_feedback(
+            key="communication_score",
+            score=communication_score / 2.0,  # Normalize to 0-1
+            comment=f"Score: {communication_score}/2.0"
+        )
+        logger.info(f"[{task_id}] ✓ Chấm giao tiếp: {communication_score}/2.0")
+    else:
+        log_feedback(
+            key="communication_error",
+            score=0.0,
+            comment=evaluation_result.get('error', 'Unknown error') if evaluation_result else 'No response'
+        )
+    
+    return evaluation_result
+
+@trace_chain(name="sales_evaluation")
+async def evaluate_sales_tracked(task_id: str, audio_bytes: bytes):
+    """Wrapper cho sales evaluation với LangSmith tracking"""
+    logger.info(f"[{task_id}] Đang chấm Kỹ năng Bán hàng...")
+    add_tags("sales", "script-matching")
+    
+    try:
+        sales_detail, sales_score = await qa_main_evaluator.evaluate_sale_skills(
+            audio_bytes=audio_bytes,
+            task_id=int(task_id)
+        )
+        
+        log_feedback(
+            key="sales_score",
+            score=sales_score / 10.0,  # Normalize nếu max score là 10
+            comment=f"Sales score: {sales_score}"
+        )
+        logger.info(f"[{task_id}] ✓ Chấm bán hàng: {sales_score}")
+        
+        return sales_detail, sales_score
+        
+    except Exception as e:
+        log_feedback(
+            key="sales_error",
+            score=0.0,
+            comment=f"Error: {str(e)}"
+        )
+        logger.error(f"[{task_id}] Lỗi chấm bán hàng: {e}")
+        raise
 
 
 qa_main_evaluator = QAMainEvaluator(
@@ -204,9 +299,16 @@ def save_result_to_file(task_id: str, result: Dict[str, Any]) -> Path:
         logger.error(f" Loi luu file: {e}")
         raise
 
-
+@trace_chain(name="communication_evaluation_pipeline")
 async def process_evaluation_task(task_id: str, audio_bytes: bytes):
     """Background task de xu ly danh gia cuoc goi"""
+    
+    add_metadata({
+        "task_id": task_id,
+        "audio_size_mb": len(audio_bytes) / (1024 * 1024),
+        "timestamp": datetime.now().isoformat()
+    })
+    add_tags("production", "communication-only")
     
     with get_db() as db:
         try:
@@ -216,7 +318,7 @@ async def process_evaluation_task(task_id: str, audio_bytes: bytes):
             
            
             logger.info(f"[{task_id}] Dang phan tich acoustic features...")
-            analysis_result = await extract_features(audio_bytes)
+            analysis_result = await extract_features_tracked(task_id, audio_bytes)
             
             if analysis_result.get('status') != 1:
                 error_msg = analysis_result.get('message', 'Loi khong xac dinh')
@@ -233,7 +335,7 @@ async def process_evaluation_task(task_id: str, audio_bytes: bytes):
                 'segments': analysis_result.get('segments')
             }
             
-            evaluation_result = await get_qa_evaluation(data_for_llm)
+            evaluation_result = await evaluate_communication_tracked(task_id, data_for_llm)
             
             if not evaluation_result or "error" in evaluation_result:
                 error_msg = evaluation_result.get('error', 'Loi khong xac dinh') if evaluation_result else 'Khong nhan duoc response'
@@ -286,17 +388,25 @@ async def process_evaluation_task(task_id: str, audio_bytes: bytes):
             logger.error(f"[{task_id}] ✗ Loi he thong: {e}", exc_info=True)
             EvaluationRepository.update_error(db, task_id, f"Loi he thong: {str(e)}")
 
+@trace_chain(name="full_evaluation_pipeline")
 async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
-    """Background task để đánh giá cả 2 tiêu chí: Giao tiếp + Bán hàng"""
+    """Background task đánh giá cả 2 tiêu chí - WITH LANGSMITH"""
+    
+    # Thêm metadata
+    add_metadata({
+        "task_id": task_id,
+        "audio_size_mb": len(audio_bytes) / (1024 * 1024),
+        "timestamp": datetime.now().isoformat()
+    })
+    add_tags("production", "full-evaluation", "communication+sales")
     
     with get_db() as db:
         try:
             EvaluationRepository.update_status(db, task_id, 'processing')
             logger.info(f"[{task_id}] Bắt đầu đánh giá tổng hợp (2 tiêu chí)...")
             
-            # 1. Phân tích acoustic features
-            logger.info(f"[{task_id}] Đang phân tích acoustic features...")
-            analysis_result = await extract_features(audio_bytes)
+            # 1. Phân tích acoustic
+            analysis_result = await extract_features_tracked(task_id, audio_bytes)
             
             if analysis_result.get('status') != 1:
                 error_msg = analysis_result.get('message', 'Lỗi không xác định')
@@ -304,16 +414,13 @@ async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
                 EvaluationRepository.update_error(db, task_id, f"Lỗi phân tích audio: {error_msg}")
                 return
             
-            logger.info(f"[{task_id}] ✓ Phân tích acoustic thành công")
-            
-            # 2. Chấm điểm Kỹ năng Giao tiếp
-            logger.info(f"[{task_id}] Đang chấm Kỹ năng Giao tiếp...")
+            # 2. Đánh giá giao tiếp
             data_for_llm = {
                 'metadata': analysis_result.get('metadata'),
                 'segments': analysis_result.get('segments')
             }
             
-            evaluation_result = await get_qa_evaluation(data_for_llm)
+            evaluation_result = await evaluate_communication_tracked(task_id, data_for_llm)
             
             if not evaluation_result or "error" in evaluation_result:
                 error_msg = evaluation_result.get('error', 'Lỗi không xác định') if evaluation_result else 'Không nhận được response'
@@ -326,38 +433,30 @@ async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
             ky_nang_noi = int(evaluation_result.get('ky_nang_noi', 0))
             ky_nang_nghe = int(evaluation_result.get('ky_nang_nghe', 0))
             thai_do = int(evaluation_result.get('thai_do', 0))
-            communication_score = 0.2 * (chao_xung_danh + ky_nang_noi) + 0.8 * (ky_nang_nghe + thai_do)
+            communication_score = 0.2 * (chao_xung_danh + ky_nang_noi) + \
+                                 0.8 * (ky_nang_nghe + thai_do)
             
             logger.info(f"[{task_id}] ✓ Chấm giao tiếp: {communication_score}/2.0")
             
-            # 3. Chấm điểm Kỹ năng Bán hàng
-            logger.info(f"[{task_id}] Đang chấm Kỹ năng Bán hàng...")
-            
+            # 3. Đánh giá bán hàng
             try:
-                # Gọi QAMainEvaluator để chấm bán hàng
-                sales_detail, sales_score = await qa_main_evaluator.evaluate_sale_skills(
-                    audio_bytes=audio_bytes,
-                    task_id=int(task_id) # Convert task_id string to int
-                )
-                
+                sales_detail, sales_score = await evaluate_sales_tracked(task_id, audio_bytes)
                 logger.info(f"[{task_id}] ✓ Chấm bán hàng: {sales_score}")
-                
             except Exception as sales_error:
                 logger.error(f"[{task_id}] Lỗi chấm bán hàng: {sales_error}")
-                # Nếu lỗi bán hàng, vẫn lưu kết quả giao tiếp
                 sales_score = 0.0
                 sales_detail = f"Lỗi: {str(sales_error)}"
             
             # 4. Tính tổng điểm
             total_score = communication_score + sales_score
             
-            # 5. Lưu kết quả vào database
+            # 5. Lưu kết quả
             result_data = {
                 'chao_xung_danh': chao_xung_danh,
                 'ky_nang_noi': ky_nang_noi,
                 'ky_nang_nghe': ky_nang_nghe,
                 'thai_do': thai_do,
-                'tong_diem': total_score,  # Tổng điểm cả 2 tiêu chí
+                'tong_diem': total_score,
                 'muc_loi': str(evaluation_result.get('muc_loi', 'Không')),
                 'ly_do': f"=== GIAO TIẾP ===\n{evaluation_result.get('ly_do', '')}\n\n=== BÁN HÀNG ===\n{sales_detail}",
                 'metadata': analysis_result.get('metadata'),
@@ -373,16 +472,26 @@ async def process_full_evaluation_task(task_id: str, audio_bytes: bytes):
                     analysis_result.get('segments')
                 )
             
-            # Lưu file JSON
             try:
                 save_result_to_file(task_id, result_data)
             except Exception as e:
                 logger.warning(f"[{task_id}] Không thể lưu file JSON: {e}")
             
+            # Log final success
+            log_feedback(
+                key="total_score",
+                score=total_score / (communication_score + 10.0),  # Normalize
+                comment=f"Communication: {communication_score}/2.0, Sales: {sales_score}, Total: {total_score}"
+            )
             logger.info(f"[{task_id}] ✓ Hoàn thành. Giao tiếp: {communication_score}/2.0, Bán hàng: {sales_score}, Tổng: {total_score}")
             
         except Exception as e:
             logger.error(f"[{task_id}] ✗ Lỗi hệ thống: {e}", exc_info=True)
+            log_feedback(
+                key="pipeline_error",
+                score=0.0,
+                comment=f"System error: {str(e)}"
+            )
             EvaluationRepository.update_error(db, task_id, f"Lỗi hệ thống: {str(e)}")
 
 
@@ -453,28 +562,28 @@ async def evaluate_full(
         logger.error(f"[{task_id}] Lỗi: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
                             
-@app.post("/api/v1/evaluate", response_model=TaskStatusResponse)
+app.post("/api/v1/evaluate", response_model=TaskStatusResponse)
 async def evaluate(
     audio_file: UploadFile = File(...),
     background_tasks: BackgroundTasks = None
 ):
-    """Danh gia ky nang giao tiep tu file audio"""
+    """Đánh giá kỹ năng giao tiếp từ file audio"""
     
     is_valid, message = validate_audio_file(audio_file.filename)
     if not is_valid:
         raise HTTPException(status_code=400, detail=message)
-    
-    task_id = str(create_task_id(audio_bytes=audio_bytes))
-    logger.info(f"[{task_id}] Nhan request: {audio_file.filename}")
     
     try:
         audio_bytes = await audio_file.read()
         file_size_mb = len(audio_bytes) / (1024 * 1024)
         
         if file_size_mb > 50:
-            raise HTTPException(status_code=400, detail=f"File qua lon ({file_size_mb:.2f}MB)")
+            raise HTTPException(status_code=400, detail=f"File quá lớn ({file_size_mb:.2f}MB)")
         
-       
+        # Tạo task_id từ audio_bytes (deterministic)
+        task_id = str(create_task_id(audio_bytes=audio_bytes))
+        logger.info(f"[{task_id}] Nhận request: {audio_file.filename}")
+        
         with get_db() as db:
             EvaluationRepository.create(
                 db, 
@@ -483,18 +592,17 @@ async def evaluate(
                 file_size_mb=round(file_size_mb, 2)
             )
         
-      
         background_tasks.add_task(process_evaluation_task, task_id, audio_bytes)
         
         return TaskStatusResponse(
             task_id=task_id,
             status="pending",
-            message=f"Da nhan file '{audio_file.filename}'. Dang xu ly...",
+            message=f"Đã nhận file '{audio_file.filename}'. Đang xử lý...",
             progress=0.0
         )
         
     except Exception as e:
-        logger.error(f"[{task_id}] Loi: {e}", exc_info=True)
+        logger.error(f"Lỗi: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/task/full/{task_id}", response_model=FullEvaluationResponse)
@@ -682,6 +790,12 @@ async def startup_event():
     logger.info(" Call Center QA API dang khoi dong...")
     init_db()
     logger.info(" Database initialized")
+    
+    if LANGSMITH_ENABLED:
+        logger.info(f"✓ LangSmith tracking: ENABLED")
+        logger.info(f"  Project: {os.getenv('LANGCHAIN_PROJECT', 'call-center-qa')}")
+    else:
+        logger.info("  LangSmith tracking: DISABLED")
     
     logger.info(f" Results directory: {RESULTS_DIR}")
     logger.info(f" API Docs: http://localhost:8000/docs")
