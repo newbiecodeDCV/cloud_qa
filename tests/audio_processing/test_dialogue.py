@@ -12,7 +12,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
     
 from src.qa_communicate.core.utils import hash_str, create_task_id
-from src.qa_communicate.audio_processing.dialogue import call_dialogue_api
+from test_qa import call_qa_api
 from src.qa_communicate.audio_processing.analysis import extract_features
 
 
@@ -54,7 +54,7 @@ async def maybe_call_dialogue(audio_bytes: bytes, task_id: int, *, timeout: floa
         print("🔄 Đang gọi call_dialogue_api...")
         print("="*60)
         
-        result = await call_dialogue_api(
+        result = await call_qa_api(
             audio_bytes=audio_bytes,
             task_id=task_id,
             max_poll_seconds=timeout,
@@ -121,7 +121,7 @@ def main():
     parser.add_argument("--audio-file", type=str, default=None, help="Đường dẫn tới file WAV để test API")
     parser.add_argument("--audio-url", type=str, default=None, help="URL file audio để tạo task_id (không tải)")
     parser.add_argument("--analyze", action="store_true", help="Gọi extract_features để phân tích audio")
-    parser.add_argument("--timeout", type=float, default=60.0, help="Timeout (giây) chờ kết quả API")
+    parser.add_argument("--timeout", type=float, default=100.0, help="Timeout (giây) chờ kết quả API")
     parser.add_argument("--verbose", action="store_true", help="In log polling chi tiết")
     parser.add_argument("--output-dir", type=str, default="results", help="Thư mục lưu kết quả JSON (mặc định: results/)")
 
