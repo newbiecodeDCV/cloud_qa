@@ -83,6 +83,7 @@ async def call_qa_api(audio_bytes: bytes,
                     # Parse JSON cho result
                     try:
                         result_data = result_response.json()
+                        print(result_data)
                     except json.JSONDecodeError:
                         if verbose:
                             print(f"[polling] JSON parse error, response: {result_response.text[:100]}")
@@ -94,12 +95,7 @@ async def call_qa_api(audio_bytes: bytes,
 
 
                     if status == 1:
-                        return {
-                            'status': 1,
-                            'task_id': task_id,
-                            'dialogue': result_data.get('result', ""),
-                            'message': 'Get dialogue complete'
-                        }
+                        return result_data
                     elif status == -1:
                         return {
                             'status': -1,

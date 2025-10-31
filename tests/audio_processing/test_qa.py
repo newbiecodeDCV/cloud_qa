@@ -98,6 +98,7 @@ async def call_qa_api(audio_bytes: bytes,
                             'status': 1,
                             'task_id': task_id,
                             'dialogue': result_data.get('result', ""),
+                            'segments' : result_data.get('segments', []),
                             'message': 'Get dialogue complete'
                         }
                     elif status == -1:
